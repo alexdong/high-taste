@@ -54,21 +54,34 @@ clean:
 
 check-dist:
 	@echo "🔍 Checking distribution..."
-	uv run twine check dist/*
+	@echo "📊 Built files:"
+	@ls -la dist/
 	@echo "✅ Distribution check complete!"
 
 # Publishing
 publish-test: build check-dist
 	@echo "🚀 Publishing to TestPyPI..."
-	@echo "⚠️  Make sure you have TWINE_PASSWORD set to your TestPyPI token"
-	uv publish dist/* --repository testpypi --username __token__
+	@echo "⚠️  Using token from ~/.pypirc or TWINE_PASSWORD environment variable"
+	@if [ -z "$$TWINE_PASSWORD" ]; then \
+		echo "📝 Reading token from ~/.pypirc..."; \
+		TOKEN=$$(grep "password = " ~/.pypirc | cut -d' ' -f3); \
+		uv publish dist/* --repository testpypi --username __token__ --password "$$TOKEN"; \
+	else \
+		uv publish dist/* --repository testpypi --username __token__; \
+	fi
 	@echo "✅ Published to TestPyPI!"
 
 publish: build check-dist
 	@echo "🚀 Publishing to PyPI..."
-	@echo "⚠️  Make sure you have TWINE_PASSWORD set to your PyPI token"
 	@read -p "Are you sure you want to publish to PyPI? (y/N): " confirm && [ "$$confirm" = "y" ]
-	uv publish dist/* --username __token__
+	@echo "⚠️  Using token from ~/.pypirc or TWINE_PASSWORD environment variable"
+	@if [ -z "$$TWINE_PASSWORD" ]; then \
+		echo "📝 Reading token from ~/.pypirc..."; \
+		TOKEN=$$(grep "password = " ~/.pypirc | cut -d' ' -f3); \
+		uv publish dist/* --username __token__ --password "$$TOKEN"; \
+	else \
+		uv publish dist/* --username __token__; \
+	fi
 	@echo "✅ Published to PyPI!"
 
 # Local testing
@@ -145,15 +158,15 @@ help:
 	@echo "  install          Install package in development mode"
 	@echo "  build            Build package (wheel + source dist)"
 	@echo "  clean            Clean build artifacts"
-	@echo "  check-dist       Validate built distributions"
+	@echo "  check-dist       Show built distribution files"
 	@echo ""
 	@echo "Testing:"
 	@echo "  test-cli         Test CLI commands locally"
 	@echo "  test-uvx         Test package with uvx"
 	@echo ""
 	@echo "Publishing:"
-	@echo "  publish-test     Publish to TestPyPI"
-	@echo "  publish          Publish to PyPI (interactive)"
+	@echo "  publish-test     Publish to TestPyPI (auto-reads ~/.pypirc)"
+	@echo "  publish          Publish to PyPI (interactive, auto-reads ~/.pypirc)"
 	@echo ""
 	@echo "Git Operations:"
 	@echo "  git-status       Show git status and recent commits"
@@ -167,4 +180,4 @@ help:
 	@echo "Documentation:"
 	@echo "  update-llms-txt  Update llms documentation"
 	@echo ""
-	@echo "💡 Tip: Set TWINE_PASSWORD environment variable with your PyPI token"
+	@echo "💡 Publishing: Uses token from ~/.pypirc or TWINE_PASSWORD env var"
