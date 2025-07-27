@@ -1,26 +1,26 @@
-# Taste
+# High-Taste
 
-An MCP (Model Context Protocol) server that enforces coding style decisions based on taste and convention rather than semantic correctness. Following the "Effective C++" tradition, Taste provides rules with examples and rationale to maintain consistent, readable code.
+An MCP (Model Context Protocol) server that enforces coding style decisions based on high-taste and convention rather than semantic correctness. Following the "Effective C++" tradition, High-Taste provides rules with examples and rationale to maintain consistent, readable code.
 
 ## Overview
 
-Taste helps development teams maintain code quality by:
-- **Checking new code** against established taste rules (like a linter for style preferences)
+High-Taste helps development teams maintain code quality by:
+- **Checking new code** against established high-taste rules (like a linter for style preferences)
 - **Learning from expert refactoring** by analyzing before/after diffs to create new rules
 - **Integrating seamlessly** with Claude Code and VS Code via MCP
 
-Unlike traditional linters that focus on syntax and semantics, Taste enforces subjective but important style decisions that make code more maintainable, readable, and consistent with team preferences.
+Unlike traditional linters that focus on syntax and semantics, High-Taste enforces subjective but important style decisions that make code more maintainable, readable, and consistent with team preferences.
 
 ## Core Functions
 
 ### `taste_check`
-Analyzes Python files against existing taste rules and reports violations with specific line numbers and rule references.
+Analyzes Python files against existing high-taste rules and reports violations with specific line numbers and rule references.
 
 **Input**: List of file contents (Python code)
 **Output**: Linting-style errors with rule numbers and descriptions
 
 ### `taste_acquire` 
-Learns new taste rules by analyzing diffs where experienced programmers have refactored code originally written by junior developers or AI.
+Learns new high-taste rules by analyzing diffs where experienced programmers have refactored code originally written by junior developers or AI.
 
 **Input**: Set of git diffs showing before/after code changes
 **Output**: New rules created or confirmation that existing rules already cover the patterns
@@ -36,12 +36,12 @@ Learns new taste rules by analyzing diffs where experienced programmers have ref
 
 2. **MCP Server Foundation**
    - Set up MCP server infrastructure with proper protocol handling
-   - Implement `taste_check` function with file content analysis
+   - Implement `high-taste_check` function with file content analysis
    - Implement `taste_acquire` function with diff analysis
    - Create standardized JSON output formats for both functions
 
 ### Phase 2: Pattern Recognition
-3. **taste_check Implementation**
+3. **high-taste_check Implementation**
    - Build AST-based pattern matcher for Python code structures
    - Implement rule violation detection with line number reporting
    - Create rule severity system (error, warning, suggestion)
@@ -79,22 +79,89 @@ Learns new taste rules by analyzing diffs where experienced programmers have ref
    - Create dashboard for team rule compliance
    - Add automated rule quality assessment
 
+## Installation
+
+### Install from PyPI
+
+```bash
+# Install using pip
+pip install high-taste
+
+# Or install using uv
+uv pip install high-taste
+
+# Or run directly with uvx (no installation needed)
+uvx high-taste --help
+```
+
+### Install from source
+
+```bash
+git clone https://github.com/alexdong/high-taste.git
+cd high-taste
+uv pip install -e .
+```
+
+## Usage
+
+### Command Line Interface
+
+High-Taste provides a CLI for standalone usage and testing:
+
+```bash
+# List all available taste rules
+high-taste rules
+
+# Check Python files for taste violations
+high-taste check file1.py file2.py
+
+# Start the MCP server
+high-taste serve
+
+# Enable debug logging
+high-taste --debug check file.py
+```
+
+### Using with uvx
+
+You can run High-Taste directly without installation using uvx:
+
+```bash
+# Run any command with uvx
+uvx high-taste rules
+uvx high-taste check mycode.py
+uvx high-taste serve
+```
+
+### MCP Integration
+
+To use High-Taste as an MCP server with Claude Code or VS Code:
+
+1. **For Claude Code**: Copy `configs/claude-code.json` to your Claude Code configuration directory
+2. **For VS Code**: Copy `configs/vscode.json` to your VS Code configuration directory
+
+Then the `taste_check` and `taste_acquire` tools will be available in your IDE.
+
 ## Project Structure
 
 ```
 ./
 ├── src/
-│   ├── taste/              # Main MCP server code
+│   ├── high_taste/         # Main MCP server code
 │   │   ├── server.py       # MCP server implementation
 │   │   ├── rules/          # Rule management and matching
 │   │   ├── parsers/        # AST and diff parsing
 │   │   └── utils/          # Helper functions
-├── rules/                  # Taste rules (markdown files)
-│   ├── 001-dynamic-discovery.md
-│   ├── 002-explicit-imports.md
+├── rules/                  # High-Taste rules (markdown files)
+│   ├── 001-assertions-over-exceptions.md
+│   ├── 002-load-resources-once.md
+│   ├── 003-eliminate-deep-nesting.md
+│   ├── 004-dynamic-data-discovery.md
+│   ├── 005-structured-return-types.md
+│   ├── 006-database-transaction-safety.md
 │   └── ...
 ├── tests/                  # Test files
-├── examples/               # Example configurations and rules
+├── examples/               # Example configurations
 ├── docs/                   # Documentation
 └── configs/                # MCP client configurations
     ├── claude-code.json

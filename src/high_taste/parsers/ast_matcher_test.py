@@ -2,7 +2,7 @@
 
 import pytest
 
-from taste.parsers.ast_matcher import analyze_python_code, CodeViolation
+from high_taste.parsers.ast_matcher import analyze_python_code, CodeViolation
 
 
 def test_defensive_try_except():

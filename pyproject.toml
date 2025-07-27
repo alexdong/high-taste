@@ -1,7 +1,19 @@
 [project]
-name = "taste"
+name = "high-taste"
 version = "0.1.0"
 description = "MCP server that enforces coding style decisions based on taste and convention"
+authors = [{name = "Alex Dong", email = "alex@example.com"}]
+readme = "README.md"
+license = {file = "LICENSE"}
+keywords = ["mcp", "linter", "code-style", "taste", "python"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
 requires-python = ">=3.13"
 dependencies = [
     "pydantic>=2.0.0",
@@ -9,14 +21,24 @@ dependencies = [
     "rich>=13.0.0",
     "mcp>=1.0.0",
     "loguru>=0.7.0",
+    "importlib_resources>=5.0.0; python_version<'3.9'",
 ]
 
 [project.scripts]
-taste = "taste.cli:main"
+high-taste = "high_taste.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/alexdong/high-taste"
+Repository = "https://github.com/alexdong/high-taste"
+Issues = "https://github.com/alexdong/high-taste/issues"
 
 [tool.setuptools.packages.find]
-include = ["taste*"]
+where = ["src"]
+include = ["high_taste*"]
 exclude = ["llms*"]
+
+[tool.setuptools.package-data]
+high_taste = ["data/rules/*.md"]
 
 [tool.uv]
 dev-dependencies = [

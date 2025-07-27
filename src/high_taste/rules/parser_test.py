@@ -3,7 +3,7 @@
 import pytest
 from pathlib import Path
 
-from taste.rules.parser import parse_rule_file, load_all_rules, TasteRule
+from high_taste.rules.parser import parse_rule_file, load_all_rules, TasteRule
 
 
 def test_parse_rule_file():

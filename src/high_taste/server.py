@@ -1,4 +1,4 @@
-"""MCP server implementation for Taste."""
+"""MCP server implementation for High-Taste."""
 
 from __future__ import annotations
 
@@ -6,12 +6,20 @@ import json
 from pathlib import Path
 from typing import Any
 
+try:
+    from importlib.resources import as_file, files
+except ImportError:
+    from importlib_resources import as_file, files  # Python < 3.9 fallback
+
 from loguru import logger
 from mcp.server import FastMCP
 from pydantic import BaseModel
 
-from taste.parsers.ast_matcher import analyze_python_code
-from taste.rules.parser import TasteRule, load_all_rules
+from high_taste.parsers.ast_matcher import analyze_python_code
+from high_taste.rules.parser import TasteRule, load_all_rules
+
+# Disable logging by default for cleaner output
+logger.disable("high_taste")
 
 
 class FileContent(BaseModel):
@@ -46,7 +54,7 @@ class TasteCheckResult(BaseModel):
 
 
 # Create the FastMCP server instance
-mcp = FastMCP("taste")
+mcp = FastMCP("high-taste")
 
 # Global rules storage
 rules: dict[str, TasteRule] = {}
@@ -55,13 +63,23 @@ def _load_rules(rules_dir: Path | None = None) -> None:
     """Load all taste rules from the rules directory."""
     global rules
     if rules_dir is None:
-        rules_dir = Path(__file__).parent.parent.parent / "rules"
+        # Try package data first using importlib.resources
+        try:
+            package_data_path = files("high_taste") / "data" / "rules"
+            with as_file(package_data_path) as rules_path:
+                rules = load_all_rules(rules_path)
+                logger.info(f"Loaded {len(rules)} taste rules from package data")
+                return
+        except Exception as e:
+            logger.warning(f"Package data access failed: {e}")
+            # Fallback to development location if package data access fails
+            rules_dir = Path(__file__).parent.parent.parent / "rules"
     
     try:
         rules = load_all_rules(rules_dir)
-        logger.info(f"Loaded {len(rules)} taste rules")
+        logger.info(f"Loaded {len(rules)} taste rules from {rules_dir}")
     except Exception as e:
-        logger.error(f"Failed to load rules: {e}")
+        logger.error(f"Failed to load rules from {rules_dir}: {e}")
         rules = {}
 
 
