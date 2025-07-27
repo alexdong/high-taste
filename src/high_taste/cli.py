@@ -1,6 +1,7 @@
 """CLI entry point for High-Taste MCP server."""
 
 from pathlib import Path
+from typing import Any
 
 import click
 from loguru import logger
@@ -32,8 +33,8 @@ def serve() -> None:
     mcp.run(transport="stdio")
 
 
-def _check_files_impl(files: tuple[str, ...]) -> None:
-    """Implementation for file checking."""
+def _load_python_files(files: tuple[str, ...]) -> list[dict[str, str]]:
+    """Load Python file contents from file paths."""
     file_contents = []
     for file_path in files:
         path = Path(file_path)
@@ -45,31 +46,48 @@ def _check_files_impl(files: tuple[str, ...]) -> None:
                 click.echo(f"Error reading {file_path}: {e}", err=True)
         else:
             click.echo(f"Skipping non-Python file: {file_path}")
-    
+    return file_contents
+
+
+def _display_violations(result: dict[str, Any]) -> None:
+    """Display violation results to the user."""
+    for violation in result["violations"]:
+        severity_icon = "🔴" if violation["severity"] == "Error" else "🟡"
+        click.echo(
+            f"{severity_icon} {violation['file_path']}:{violation['line_number']}:{violation['column']}"
+        )
+        click.echo(f"   Rule {violation['rule_id']}: {violation['message']}")
+        click.echo(f"   Category: {violation['category']}")
+        click.echo()
+
+
+def _display_summary(result: dict[str, Any]) -> None:
+    """Display summary of violations by rule."""
+    click.echo("Summary by rule:")
+    for rule_id, count in result["summary_by_rule"].items():
+        click.echo(f"  Rule {rule_id}: {count} violations")
+
+
+def _check_files_impl(files: tuple[str, ...]) -> None:
+    """Implementation for file checking."""
+    file_contents = _load_python_files(files)
+
     if not file_contents:
         click.echo("No Python files to check.")
         return
-    
+
     result = check_files_standalone(file_contents)
-    
+
     # Display results
     if result["total_violations"] == 0:
         click.echo(f"✅ No violations found in {result['total_files_checked']} files")
     else:
-        click.echo(f"❌ Found {result['total_violations']} violations in {result['total_files_checked']} files")
+        click.echo(
+            f"❌ Found {result['total_violations']} violations in {result['total_files_checked']} files"
+        )
         click.echo()
-        
-        for violation in result["violations"]:
-            severity_icon = "🔴" if violation["severity"] == "Error" else "🟡"
-            click.echo(f"{severity_icon} {violation['file_path']}:{violation['line_number']}:{violation['column']}")
-            click.echo(f"   Rule {violation['rule_id']}: {violation['message']}")
-            click.echo(f"   Category: {violation['category']}")
-            click.echo()
-        
-        # Show summary
-        click.echo("Summary by rule:")
-        for rule_id, count in result["summary_by_rule"].items():
-            click.echo(f"  Rule {rule_id}: {count} violations")
+        _display_violations(result)
+        _display_summary(result)
 
 
 @main.command()
@@ -79,7 +97,7 @@ def check(files: tuple[str, ...]) -> None:
     if not files:
         click.echo("No files provided. Use 'high-taste check file1.py file2.py'")
         return
-    
+
     _check_files_impl(files)
 
 
@@ -87,7 +105,7 @@ def check(files: tuple[str, ...]) -> None:
 def rules() -> None:
     """List all available taste rules."""
     taste_rules = {}
-    
+
     # Try package data first using importlib.resources
     try:
         package_data_path = files("high_taste") / "data" / "rules"
@@ -95,7 +113,7 @@ def rules() -> None:
             taste_rules = load_all_rules(rules_path)
             click.echo(f"Available taste rules ({len(taste_rules)} total):")
             click.echo()
-            
+
             for _rule_id, rule in sorted(taste_rules.items()):
                 severity_icon = "🔴" if rule.severity == "Error" else "🟡"
                 click.echo(f"{severity_icon} Rule {rule.id}: {rule.title}")
@@ -106,22 +124,22 @@ def rules() -> None:
     except Exception as e:
         click.echo(f"Package data access failed: {e}", err=True)
         # Fall through to try development location
-    
+
     # Fallback to development location
     try:
         rules_dir = Path(__file__).parent.parent.parent / "rules"
         taste_rules = load_all_rules(rules_dir)
-        
+
         click.echo(f"Available taste rules ({len(taste_rules)} total):")
         click.echo()
-        
+
         for _rule_id, rule in sorted(taste_rules.items()):
             severity_icon = "🔴" if rule.severity == "Error" else "🟡"
             click.echo(f"{severity_icon} Rule {rule.id}: {rule.title}")
             click.echo(f"   Category: {rule.category} | Severity: {rule.severity}")
             click.echo(f"   {rule.rationale}")
             click.echo()
-    
+
     except Exception as e:
         click.echo(f"Error loading rules from {rules_dir}: {e}", err=True)
 

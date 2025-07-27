@@ -94,8 +94,9 @@ extend-ignore = [
     "COM812",   # flake8-commas - allow trailing commas in function calls
     "EM102",    # flake8-errmsg - allow exception message in f-string
     "E501",     # pycodestyle - ignore line too long (let formatter handle it)
-    "E501",     # pycodestyle - ignore line too long (duplicate entry)
     "PLR0913",  # pylint - allow more than 5 function arguments
+    "PLW0603",  # pylint - allow global variable updates for MCP server state
+    "C901",     # mccabe - allow complex analysis functions in parsers
     "TRY003",   # tryceratops - allow long exception messages
     "W293",     # pycodestyle - allow blank line with whitespace
 ]

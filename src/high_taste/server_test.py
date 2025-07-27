@@ -4,7 +4,7 @@ import pytest
 import asyncio
 from pathlib import Path
 
-from high_taste.server import TasteServer, FileContent, TasteCheckInput
+from high_taste.server import FileContent, TasteCheckInput, check_files_standalone
 
 
 @pytest.fixture
