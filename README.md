@@ -1,36 +1,102 @@
-# python-template
+# Taste
 
-A modern Python project template with comprehensive tooling and documentation ready for GitHub Pages hosting.
+An MCP (Model Context Protocol) server that enforces coding style decisions based on taste and convention rather than semantic correctness. Following the "Effective C++" tradition, Taste provides rules with examples and rationale to maintain consistent, readable code.
 
-## Features
+## Overview
 
-- **Modern Python tooling**: uv, ruff, pytest, pydantic
-- **Comprehensive documentation**: Ready-to-use guides for common Python packages
-- **GitHub Pages ready**: The `docs/` folder can be directly hosted as a static documentation site
-- **Best practices**: Pre-configured with Python coding standards and project structure
+Taste helps development teams maintain code quality by:
+- **Checking new code** against established taste rules (like a linter for style preferences)
+- **Learning from expert refactoring** by analyzing before/after diffs to create new rules
+- **Integrating seamlessly** with Claude Code and VS Code via MCP
 
-## Documentation
+Unlike traditional linters that focus on syntax and semantics, Taste enforces subjective but important style decisions that make code more maintainable, readable, and consistent with team preferences.
 
-The `docs/` folder contains comprehensive documentation that can be hosted directly on GitHub Pages:
+## Core Functions
 
-1. Go to your repository Settings → Pages
-2. Under "Source", select "Deploy from a branch"
-3. Choose "main" branch and "/docs" folder
-4. Click Save
+### `taste_check`
+Analyzes Python files against existing taste rules and reports violations with specific line numbers and rule references.
 
-Your documentation will be available at: `https://[username].github.io/[repository-name]/`
+**Input**: List of file contents (Python code)
+**Output**: Linting-style errors with rule numbers and descriptions
+
+### `taste_acquire` 
+Learns new taste rules by analyzing diffs where experienced programmers have refactored code originally written by junior developers or AI.
+
+**Input**: Set of git diffs showing before/after code changes
+**Output**: New rules created or confirmation that existing rules already cover the patterns
+
+## Implementation Plan
+
+### Phase 1: Core Architecture
+1. **Rule System Design**
+   - Create `rules/` directory with markdown files (one rule per file)
+   - Implement rule parser to extract patterns, examples, and metadata
+   - Design rule matching engine using AST analysis for semantic patterns
+   - Create rule numbering/ID system for references
+
+2. **MCP Server Foundation**
+   - Set up MCP server infrastructure with proper protocol handling
+   - Implement `taste_check` function with file content analysis
+   - Implement `taste_acquire` function with diff analysis
+   - Create standardized JSON output formats for both functions
+
+### Phase 2: Pattern Recognition
+3. **taste_check Implementation**
+   - Build AST-based pattern matcher for Python code structures
+   - Implement rule violation detection with line number reporting
+   - Create rule severity system (error, warning, suggestion)
+   - Add support for incremental checking (only changed lines)
+
+4. **taste_acquire Implementation**
+   - Develop diff parser to extract before/after code patterns
+   - Create pattern generalization algorithm (specific → general rules)
+   - Implement rule conflict detection and resolution
+   - Build automatic rule description generation
+
+### Phase 3: Integration
+5. **IDE Integration**
+   - Configure MCP server for Claude Code integration
+   - Set up VS Code MCP client configuration
+   - Create configuration files for both environments
+   - Test end-to-end workflow in both IDEs
+
+6. **Rule Management**
+   - Implement rule CRUD operations (create, read, update, disable)
+   - Add rule versioning and change tracking
+   - Create rule validation and testing framework
+   - Build rule export/import functionality
+
+### Phase 4: Advanced Features
+7. **Intelligence Enhancements**
+   - Add machine learning for better pattern recognition
+   - Implement context-aware rule application
+   - Create rule recommendation system
+   - Add support for custom rule templates
+
+8. **Monitoring and Metrics**
+   - Track rule violation frequency and trends
+   - Measure rule effectiveness and adoption
+   - Create dashboard for team rule compliance
+   - Add automated rule quality assessment
 
 ## Project Structure
 
 ```
 ./
-├── docs/                   # Documentation (GitHub Pages ready)
-├── src/                    # Application code
+├── src/
+│   ├── taste/              # Main MCP server code
+│   │   ├── server.py       # MCP server implementation
+│   │   ├── rules/          # Rule management and matching
+│   │   ├── parsers/        # AST and diff parsing
+│   │   └── utils/          # Helper functions
+├── rules/                  # Taste rules (markdown files)
+│   ├── 001-dynamic-discovery.md
+│   ├── 002-explicit-imports.md
+│   └── ...
 ├── tests/                  # Test files
-├── logs/                   # Implementation logs
-├── llms/                   # LLM-friendly documentation
-├── Makefile               # Task automation
-├── pyproject.toml         # Project configuration
-├── Python.md              # Python coding standards
-└── CLAUDE.md              # AI assistant instructions
+├── examples/               # Example configurations and rules
+├── docs/                   # Documentation
+└── configs/                # MCP client configurations
+    ├── claude-code.json
+    └── vscode.json
 ```
