@@ -193,6 +193,21 @@ def _check_single_file(file_content: FileContent) -> list[TasteViolation]:
 _load_rules()
 
 
+def check_files_standalone(files: list[dict[str, str]]) -> dict[str, Any]:
+    """Standalone function for checking files without MCP."""
+    try:
+        return taste_check(files)
+    except Exception as e:
+        logger.error(f"Error in standalone check: {e}")
+        return {
+            "error": str(e),
+            "violations": [],
+            "total_files_checked": 0,
+            "total_violations": 0,
+            "summary_by_rule": {}
+        }
+
+
 def create_server() -> FastMCP:
     """Create and return a configured Taste MCP server."""
     return mcp
@@ -215,7 +230,7 @@ def bad_function():
         }
     ]
     
-    result = taste_check(sample_files)
+    result = check_files_standalone(sample_files)
     print("Taste check result:")
     print(json.dumps(result, indent=2))
     

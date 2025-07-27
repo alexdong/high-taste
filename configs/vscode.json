@@ -1,0 +1,14 @@
+{
+  "mcp": {
+    "servers": {
+      "taste": {
+        "command": "uv",
+        "args": ["run", "python", "-m", "taste.server"],
+        "cwd": "/path/to/taste",
+        "env": {
+          "PYTHONPATH": "src"
+        }
+      }
+    }
+  }
+}
