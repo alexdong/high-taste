@@ -5,123 +5,25 @@ Convert markdown rule files to YAML format using Pydantic AI with Sonnet-4.
 
 import argparse
 import asyncio
-import os
 import re
-import sys
 from pathlib import Path
 
-try:
-    from pydantic_ai import Agent
-    from pydantic_ai.models.anthropic import AnthropicModel
-except ImportError:
-    print("Error: pydantic-ai not found. Please install it first: pip install pydantic-ai")
-    sys.exit(1)
+from high_taste.utils import serialise_yaml
 
-from pydantic import BaseModel
-from pydantic_ai.result import RunResult
-
-
-class RuleExample(BaseModel):
-    scenario: str
-    before: str
-    after: str
-
-
-class ConvertedRule(BaseModel):
-    title: str
-    id: str
-    description: str
-    problems_with_bad_practice: list[str]
-    solutions_for_good_practice: list[str]
-    examples: list[RuleExample]
-
-
-SYSTEM_PROMPT = """You are an expert Python developer and technical writer specializing in code quality and best practices. You have deep experience with open source Python projects and understand real-world development challenges. Your writing is clear, practical, and actionable."""
+from .llm import agent_run
+from .prompt import RULE_DETAILS_PROMPT
 
 
 def get_conversion_prompt(md_content: str) -> str:
     """Generate the user prompt for converting a markdown rule to YAML format."""
     return f"""
+${RULE_DETAILS_PROMPT}
+
+Your task is to convert this markdown rule file into comprehensive YAML format with extensive examples.
 Convert this markdown rule to the specified YAML format:
 
 {md_content}
-
-Your task is to convert this markdown rule file into comprehensive YAML format with extensive examples.
-
-Requirements:
-1. Extract the rule title and ID
-2. Write a comprehensive description explaining what this rule is about
-3. List specific problems with the bad practice (what goes wrong when this rule is violated)
-4. List specific solutions and best practices
-5. Create exactly 25 diverse Python examples covering different scenarios:
-   - Web development (FastAPI, Flask, Django routes, middleware, etc.)
-   - Data science (pandas operations, numpy arrays, data processing)
-   - Testing (pytest fixtures, test organization, mocking)
-   - CLI applications (argument parsing, user interaction)
-   - Database operations (queries, transactions, ORM usage)
-   - File and I/O operations
-   - API clients and HTTP requests
-   - Configuration and settings management
-   - Logging and error handling
-   - Async/await patterns
-   - Class design and inheritance
-   - Function composition and decorators
-   - Package and module organization
-   - Performance optimization
-   - Security considerations
-
-Key requirements:
-- Create exactly 25 diverse examples that cover common scenarios in open source Python projects
-- Use ONLY Python code in all examples
-- Make examples realistic and practical, not toy examples
-- Cover different domains: web development, data science, CLI tools, APIs, testing, etc.
-- Ensure examples demonstrate the rule clearly with meaningful before/after code
-- Write clear, actionable problem descriptions and solutions
-- Focus on real-world scenarios developers encounter daily
-
-For the problems_with_bad_practice and solutions_for_good_practice sections:
-- Be specific and actionable
-- Explain the "why" behind the rule
-- Include consequences of not following the rule
-- Provide concrete steps to implement the solution
-
-Each example should:
-- Have a clear scenario description
-- Show realistic before/after code (not toy examples)
-- Demonstrate the rule violation and its fix
-- Be relevant to real open source Python projects
-- Cover different complexity levels (simple to advanced)
-
-Make the problems and solutions sections specific and actionable, explaining the real-world impact.
 """
-
-async def convert_rule_with_ai(agent: Agent, prompt: str) -> RunResult[Rule]:
-    """Convert a rule using the AI agent."""
-    return await agent.run(
-        prompt,
-        settings=ModelSettings(temperature=0.2, max_tokens=50000)
-    )
-
-
-def get_ai_agent(system_prompt: str) -> Agent:
-    """Initialize and return the AI agent."""
-    # Check for API key
-    if not os.getenv("ANTHROPIC_API_KEY"):
-        msg = "ANTHROPIC_API_KEY environment variable is required"
-        raise ValueError(msg)
-
-    model = AnthropicModel("claude-3-5-sonnet-20241022")
-    return Agent(
-        model,
-        output_type=ConvertedRule,
-        system_prompt=system_prompt,
-    )
-
-
-async def convert_rule_with_ai(agent: Agent, prompt: str) -> "RunResult[ConvertedRule]":
-    """Convert a rule using the AI agent."""
-    return await agent.run(prompt)
-
 
 
 
@@ -214,33 +116,32 @@ async def convert_rule(md_file_path: Path) -> bool:
         print(f"Converting rule {rule_id} from {md_file_path}")
 
         # Get AI response
-        agent = get_ai_agent(SYSTEM_PROMPT)
         prompt = get_conversion_prompt(md_content)
-        result = await convert_rule_with_ai(agent, prompt)
+        rule = await agent_run(prompt)
 
         # Convert to YAML format
         # Clean up title for key names
-        clean_title = re.sub(r"[^a-zA-Z0-9_]", "_", result.output.title.lower()).strip(
-            "_"
-        )
+        clean_title = re.sub(r"[^a-zA-Z0-9_]", "_", rule.title.lower()).strip("_")
         while "__" in clean_title:
             clean_title = clean_title.replace("__", "_")
 
         yaml_data = {
-            "title": result.output.title,
-            "id": result.output.id,
-            "description": result.output.description,
-            "problems_": result.output.problems,
-            "solutions": result.output.solutions,
+            "title": rule.title,
+            "id": rule.id,
+            "description": rule.description,
+            "problems_": rule.problems,
+            "solutions": rule.solutions,
             "examples": [
                 {
                     "scenario": example.scenario,
                     "before": example.before,
                     "after": example.after,
                 }
-                for example in result.output.examples
+                for example in rule.examples
             ],
         }
+        # Create output path
+        yaml_file_path = md_file_path.parent / f"{rule_id}.yaml"
         serialise_yaml(yaml_data, yaml_file_path)
         print(f"✓ Converted {rule_id} to {yaml_file_path}")
         return True
@@ -253,11 +154,13 @@ async def convert_rule(md_file_path: Path) -> bool:
 async def main() -> None:
     """Main function to convert all markdown rule files."""
     # Parse command line arguments
-    parser = argparse.ArgumentParser(description="Convert markdown rule files to YAML format")
+    parser = argparse.ArgumentParser(
+        description="Convert markdown rule files to YAML format"
+    )
     parser.add_argument(
         "--first-only",
         action="store_true",
-        help="Stop after converting the first markdown file (useful for testing)"
+        help="Stop after converting the first markdown file (useful for testing)",
     )
     args = parser.parse_args()
 
@@ -270,7 +173,7 @@ async def main() -> None:
     # Find all markdown files
     md_files = list(rules_dir.rglob("*.md"))
     print(f"Found {len(md_files)} markdown rule files")
-    
+
     if args.first_only:
         print("Running in test mode - will stop after first successful conversion")
 
