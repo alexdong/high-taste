@@ -1,0 +1,88 @@
+title: Wrap third‑party APIs to isolate your code from changes
+id: BND001
+description: When working with third-party APIs, it's crucial to create an abstraction
+  layer between your application code and external dependencies. This pattern, known
+  as the Adapter Pattern, isolates your codebase from external changes by providing
+  a stable interface that your application can rely on. When the third-party API changes,
+  you only need to update the wrapper code instead of modifying multiple places throughout
+  your application. This approach enhances maintainability, testability, and makes
+  it easier to switch providers or update dependencies.
+problems_with_wrap_third_party_apis_to_isolate_your_code_from_changes:
+- Direct dependency on third-party APIs makes code brittle and difficult to maintain
+  when APIs change
+- Testing becomes challenging as mocking needs to be done in multiple places
+- Code duplication when the same API calls are made from different parts of the application
+- Difficult to switch providers or upgrade to newer API versions
+- Security vulnerabilities may be exposed by directly using external APIs without
+  proper validation
+- Lack of centralized error handling and retry logic for API calls
+- No standardized way to handle API authentication and configuration
+- Version conflicts when different parts of the application require different versions
+  of the same library
+- Hard to implement caching or optimization strategies across the application
+- Difficult to monitor and log API usage patterns consistently
+solutions_for_wrap_third_party_apis_to_isolate_your_code_from_changes:
+- Create adapter classes that encapsulate all interactions with third-party APIs
+- Define clear interfaces that abstract away the implementation details
+- Centralize configuration and authentication management
+- Implement consistent error handling and retry mechanisms
+- Add logging and monitoring at the adapter level
+- Use dependency injection to make code more testable
+- Create mock implementations for testing
+- Document the adapter interface clearly for team usage
+- Include validation and security checks in the wrapper
+- Implement caching and optimization strategies in one place
+examples:
+- scenario: HTTP Client Wrapper
+  before: "import requests\n\ndef get_user_data(user_id):\n    response = requests.get(f'https://api.example.com/users/{user_id}')\n\
+    \    return response.json()"
+  after: "class UserApiClient:\n    def __init__(self, base_url, api_key):\n     \
+    \   self.base_url = base_url\n        self.session = requests.Session()\n    \
+    \    self.session.headers['Authorization'] = f'Bearer {api_key}'\n\n    def get_user(self,\
+    \ user_id):\n        response = self.session.get(f'{self.base_url}/users/{user_id}')\n\
+    \        response.raise_for_status()\n        return response.json()"
+- scenario: Database ORM Wrapper
+  before: 'from sqlalchemy import create_engine
+
+
+    engine = create_engine(''postgresql://user:pass@localhost/db'')
+
+    result = engine.execute(''SELECT * FROM users'')'
+  after: "class DatabaseClient:\n    def __init__(self, connection_string):\n    \
+    \    self._engine = create_engine(connection_string)\n        \n    def get_users(self):\n\
+    \        with self._engine.connect() as conn:\n            return conn.execute('SELECT\
+    \ * FROM users').fetchall()\n\n    def close(self):\n        self._engine.dispose()"
+- scenario: Redis Cache Wrapper
+  before: 'import redis
+
+
+    r = redis.Redis()
+
+    r.set(''key'', ''value'', ex=3600)
+
+    value = r.get(''key'')'
+  after: "class CacheService:\n    def __init__(self, host='localhost', port=6379):\n\
+    \        self._client = redis.Redis(host=host, port=port)\n        \n    def set_value(self,\
+    \ key, value, ttl_seconds=3600):\n        return self._client.set(key, value,\
+    \ ex=ttl_seconds)\n        \n    def get_value(self, key):\n        return self._client.get(key)"
+- scenario: FastAPI External Service
+  before: "from fastapi import FastAPI\nimport httpx\n\napp = FastAPI()\n\n@app.get('/weather/{city}')\n\
+    async def weather(city: str):\n    async with httpx.AsyncClient() as client:\n\
+    \        response = await client.get(f'http://weather.api/{city}')\n        return\
+    \ response.json()"
+  after: "class WeatherService:\n    def __init__(self, api_url):\n        self.api_url\
+    \ = api_url\n        self.client = httpx.AsyncClient()\n\n    async def get_weather(self,\
+    \ city: str):\n        response = await self.client.get(f'{self.api_url}/{city}')\n\
+    \        return response.json()\n\n    async def close(self):\n        await self.client.aclose()\n\
+    \nweather_service = WeatherService('http://weather.api')\n\n@app.get('/weather/{city}')\n\
+    async def weather(city: str):\n    return await weather_service.get_weather(city)"
+- scenario: Pandas Data Processing
+  before: "import pandas as pd\n\ndef process_data():\n    df = pd.read_csv('data.csv')\n\
+    \    df['new_col'] = df['col1'] * 2\n    df.to_csv('output.csv')"
+  after: "class DataProcessor:\n    def __init__(self, input_path, output_path):\n\
+    \        self.input_path = input_path\n        self.output_path = output_path\n\
+    \        \n    def load_data(self):\n        self.df = pd.read_csv(self.input_path)\n\
+    \        \n    def transform(self):\n        self.df['new_col'] = self.df['col1']\
+    \ * 2\n        \n    def save(self):\n        self.df.to_csv(self.output_path)\n\
+    \        \n    def process(self):\n        self.load_data()\n        self.transform()\n\
+    \        self.save()"

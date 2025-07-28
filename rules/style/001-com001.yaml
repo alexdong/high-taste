@@ -1,0 +1,361 @@
+title: Use comments to explain *why*, not *what*
+id: COM001
+
+description: |-
+  Comments should explain the reasoning and intent behind code decisions
+  rather than describing what the code literally does. "What" comments are
+  redundant since the code itself shows what is happening. "Why" comments
+  provide valuable context about business logic, edge cases, and design
+  decisions.
+
+problems_with_what_comments:
+  - They duplicate information already visible in the code
+  - They become outdated when code changes but comments don't
+  - They add noise without providing insight
+  - They can make code harder to read by stating the obvious
+
+solutions_for_meaningful_comments:
+  - Explain business rules and requirements
+  - Document assumptions and constraints
+  - Describe complex algorithms and their purpose
+  - Note workarounds and their reasons
+  - Clarify non‑obvious performance optimizations
+
+examples:
+  - scenario: Incrementing index
+    before: |
+      ```python
+      # add 1 to i
+      i += 1
+      ```
+    after: |
+      ```python
+      # Compensate for zero‑based index
+      i += 1
+      ```
+
+  - scenario: Mutable default argument
+    before: |
+      ```python
+      def add_item(item, bucket=[]):
+          # append to bucket
+          bucket.append(item)
+          return bucket
+      ```
+    after: |
+      ```python
+      def add_item(item, bucket=None):
+          """Use a new list unless one is explicitly supplied."""
+          if bucket is None:
+              bucket = []
+          bucket.append(item)
+          return bucket
+      ```
+
+  - scenario: Repeated expensive computation
+    before: |
+      ```python
+      # fetch the config every time
+      for item in items:
+          cfg = load_config()  # expensive I/O
+          process(item, cfg)
+      ```
+    after: |
+      ```python
+      # Load config once; reuse for all items
+      cfg = load_config()  # expensive I/O
+      for item in items:
+          process(item, cfg)
+      ```
+
+  - scenario: Database transaction isolation
+    before: |
+      ```sql
+      -- set isolation level to read committed
+      SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+      ```
+    after: |
+      ```sql
+      -- Prevent dirty reads while allowing concurrent updates
+      SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+      ```
+
+  - scenario: Memory allocation strategy
+    before: |
+      ```c
+      // allocate 1024 bytes
+      char* buffer = malloc(1024);
+      ```
+    after: |
+      ```c
+      // Buffer size matches network packet MTU for efficiency
+      char* buffer = malloc(1024);
+      ```
+
+  - scenario: Error code handling
+    before: |
+      ```go
+      // check if err is not nil
+      if err != nil {
+          return err
+      }
+      ```
+    after: |
+      ```go
+      // Propagate network failures to retry logic
+      if err != nil {
+          return err
+      }
+      ```
+
+  - scenario: CSS z-index value
+    before: |
+      ```css
+      /* set z-index to 9999 */
+      .modal {
+          z-index: 9999;
+      }
+      ```
+    after: |
+      ```css
+      /* Ensure modal appears above all page content */
+      .modal {
+          z-index: 9999;
+      }
+      ```
+
+  - scenario: API rate limiting
+    before: |
+      ```javascript
+      // wait 100ms
+      await sleep(100);
+      ```
+    after: |
+      ```javascript
+      // Respect API rate limit of 10 requests per second
+      await sleep(100);
+      ```
+
+  - scenario: Regex pattern
+    before: |
+      ```python
+      # match digits
+      pattern = r'\d+'
+      ```
+    after: |
+      ```python
+      # Extract invoice numbers from receipt text
+      pattern = r'\d+'
+      ```
+
+  - scenario: Cache expiration
+    before: |
+      ```python
+      # set ttl to 3600
+      cache.set(key, value, ttl=3600)
+      ```
+    after: |
+      ```python
+      # Refresh hourly to balance performance with data freshness
+      cache.set(key, value, ttl=3600)
+      ```
+
+  - scenario: Thread pool size
+    before: |
+      ```java
+      // create thread pool with 8 threads
+      ExecutorService executor = Executors.newFixedThreadPool(8);
+      ```
+    after: |
+      ```java
+      // Match CPU cores for CPU-bound tasks
+      ExecutorService executor = Executors.newFixedThreadPool(8);
+      ```
+
+  - scenario: Magic number constant
+    before: |
+      ```python
+      # multiply by 1000
+      milliseconds = seconds * 1000
+      ```
+    after: |
+      ```python
+      # Convert seconds to milliseconds for timer API
+      milliseconds = seconds * 1000
+      ```
+
+  - scenario: Binary flag operations
+    before: |
+      ```c
+      // set bit 3
+      flags |= 0x08;
+      ```
+    after: |
+      ```c
+      // Enable debug logging for this session
+      flags |= 0x08;
+      ```
+
+  - scenario: File permission mask
+    before: |
+      ```python
+      # set mode to 644
+      os.chmod(filename, 0o644)
+      ```
+    after: |
+      ```python
+      # Owner read/write, group/others read-only
+      os.chmod(filename, 0o644)
+      ```
+
+  - scenario: HTTP status code
+    before: |
+      ```python
+      # return 422
+      return Response(status=422)
+      ```
+    after: |
+      ```python
+      # Signal validation errors to client
+      return Response(status=422)
+      ```
+
+  - scenario: Array slice bounds
+    before: |
+      ```python
+      # get first 10 items
+      results = items[:10]
+      ```
+    after: |
+      ```python
+      # Limit results to prevent UI overflow
+      results = items[:10]
+      ```
+
+  - scenario: Floating point comparison
+    before: |
+      ```python
+      # check if close to zero
+      if abs(value) < 1e-6:
+          return True
+      ```
+    after: |
+      ```python
+      # Account for floating point precision errors
+      if abs(value) < 1e-6:
+          return True
+      ```
+
+  - scenario: Socket timeout value
+    before: |
+      ```python
+      # set timeout to 30 seconds
+      socket.settimeout(30)
+      ```
+    after: |
+      ```python
+      # Prevent hanging on slow network connections
+      socket.settimeout(30)
+      ```
+
+  - scenario: Password hash rounds
+    before: |
+      ```python
+      # use 12 rounds
+      hashed = bcrypt.hashpw(password, bcrypt.gensalt(rounds=12))
+      ```
+    after: |
+      ```python
+      # Balance security with performance (~250ms on modern hardware)
+      hashed = bcrypt.hashpw(password, bcrypt.gensalt(rounds=12))
+      ```
+
+  - scenario: Database connection pool
+    before: |
+      ```python
+      # set max connections to 20
+      pool = ConnectionPool(max_connections=20)
+      ```
+    after: |
+      ```python
+      # Limit connections to prevent database overload
+      pool = ConnectionPool(max_connections=20)
+      ```
+
+  - scenario: Retry attempt count
+    before: |
+      ```python
+      # retry 3 times
+      for i in range(3):
+          try:
+              return api_call()
+          except RequestException:
+              continue
+      ```
+    after: |
+      ```python
+      # Handle transient network failures gracefully
+      for i in range(3):
+          try:
+              return api_call()
+          except RequestException:
+              continue
+      ```
+
+  - scenario: Buffer size calculation
+    before: |
+      ```c
+      // allocate buffer of size n * 4
+      int* buffer = malloc(n * sizeof(int));
+      ```
+    after: |
+      ```c
+      // Size buffer for integer array to prevent overflow
+      int* buffer = malloc(n * sizeof(int));
+      ```
+
+  - scenario: CSS media query breakpoint
+    before: |
+      ```css
+      /* apply styles for screens wider than 768px */
+      @media (min-width: 768px) {
+          .container { width: 750px; }
+      }
+      ```
+    after: |
+      ```css
+      /* Switch to desktop layout at tablet threshold */
+      @media (min-width: 768px) {
+          .container { width: 750px; }
+      }
+      ```
+
+  - scenario: Git commit hash truncation
+    before: |
+      ```python
+      # get first 7 characters
+      short_hash = commit_hash[:7]
+      ```
+    after: |
+      ```python
+      # Standard Git short hash length for UI display
+      short_hash = commit_hash[:7]
+      ```
+
+  - scenario: JSON parsing with fallback
+    before: |
+      ```python
+      # parse json or return empty dict
+      try:
+          data = json.loads(response)
+      except JSONDecodeError:
+          data = {}
+      ```
+    after: |
+      ```python
+      # Handle malformed API responses gracefully
+      try:
+          data = json.loads(response)
+      except JSONDecodeError:
+          data = {}
+      ```

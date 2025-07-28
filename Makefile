@@ -1,4 +1,10 @@
-.PHONY: dev test test-coverage type-coverage build clean install publish check-dist help update-llms-txt
+.PHONY: create dev test test-coverage type-coverage build clean install publish check-dist help update-llms-txt
+
+# Usage targets
+create:
+	@echo "🛠️  Create a rule with the given diff url ..."
+	# This allows: make create <diff_url>
+	python -m high_taste.rules.create --debug $(filter-out $@,$(MAKECMDGOALS))
 
 # Development targets
 dev:

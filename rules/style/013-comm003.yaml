@@ -1,0 +1,704 @@
+title: Provide edge‑case examples in comments for tricky functions
+id: COMM003
+
+description: |-
+  Complex functions should include concrete examples that demonstrate edge cases 
+  and non-obvious behavior. These examples serve as both documentation and informal 
+  tests, helping developers understand the function's behavior without having to 
+  trace through the implementation.
+
+problems_without_edge_case_examples:
+  - Developers must mentally trace through complex logic
+  - Non-obvious behaviors are discovered through trial and error
+  - Edge cases are not immediately apparent
+  - Function behavior with unusual inputs is unclear
+  - New team members struggle to understand function contracts
+  - Debugging becomes more difficult without clear expectations
+
+solutions_for_effective_examples:
+  - Include examples in docstrings with expected inputs and outputs
+  - Show edge cases like empty inputs, boundary values, and special characters
+  - Use realistic data that might occur in production
+  - Include examples that demonstrate error conditions
+  - Show how the function handles unexpected but valid inputs
+  - Use doctest format when appropriate for executable examples
+
+examples:
+  - scenario: String manipulation with edge cases
+    before: |
+      ```python
+      def normalize_phone(phone):
+          """Remove non-digits from phone number."""
+          return ''.join(c for c in phone if c.isdigit())
+      ```
+    after: |
+      ```python
+      def normalize_phone(phone):
+          """Remove non-digits from phone number.
+          
+          Examples:
+              >>> normalize_phone("(555) 123-4567")
+              "5551234567"
+              >>> normalize_phone("+1-555-123-4567")
+              "15551234567"
+              >>> normalize_phone("555.123.4567 ext 123")
+              "5551234567123"
+              >>> normalize_phone("")
+              ""
+          """
+          return ''.join(c for c in phone if c.isdigit())
+      ```
+
+  - scenario: Date parsing with boundary conditions
+    before: |
+      ```python
+      def parse_date_range(date_str):
+          """Parse date range from string."""
+          start, end = date_str.split(' to ')
+          return datetime.strptime(start, '%Y-%m-%d'), datetime.strptime(end, '%Y-%m-%d')
+      ```
+    after: |
+      ```python
+      def parse_date_range(date_str):
+          """Parse date range from string.
+          
+          Examples:
+              >>> parse_date_range("2023-01-01 to 2023-01-31")
+              (datetime(2023, 1, 1), datetime(2023, 1, 31))
+              >>> parse_date_range("2023-12-31 to 2024-01-01")  # Year boundary
+              (datetime(2023, 12, 31), datetime(2024, 1, 1))
+              >>> parse_date_range("2023-02-28 to 2023-03-01")  # Month boundary
+              (datetime(2023, 2, 28), datetime(2023, 3, 1))
+          """
+          start, end = date_str.split(' to ')
+          return datetime.strptime(start, '%Y-%m-%d'), datetime.strptime(end, '%Y-%m-%d')
+      ```
+
+  - scenario: List processing with empty inputs
+    before: |
+      ```python
+      def calculate_moving_average(numbers, window_size):
+          """Calculate moving average."""
+          return [sum(numbers[i:i+window_size])/window_size 
+                  for i in range(len(numbers)-window_size+1)]
+      ```
+    after: |
+      ```python
+      def calculate_moving_average(numbers, window_size):
+          """Calculate moving average.
+          
+          Examples:
+              >>> calculate_moving_average([1, 2, 3, 4, 5], 3)
+              [2.0, 3.0, 4.0]
+              >>> calculate_moving_average([10], 1)
+              [10.0]
+              >>> calculate_moving_average([], 3)
+              []
+              >>> calculate_moving_average([1, 2], 5)  # Window larger than data
+              []
+          """
+          return [sum(numbers[i:i+window_size])/window_size 
+                  for i in range(len(numbers)-window_size+1)]
+      ```
+
+  - scenario: URL validation with special cases
+    before: |
+      ```python
+      def is_valid_url(url):
+          """Check if URL is valid."""
+          return url.startswith('http') and '.' in url
+      ```
+    after: |
+      ```python
+      def is_valid_url(url):
+          """Check if URL is valid.
+          
+          Examples:
+              >>> is_valid_url("https://example.com")
+              True
+              >>> is_valid_url("http://localhost:8080")
+              True
+              >>> is_valid_url("https://sub.domain.co.uk/path?param=value")
+              True
+              >>> is_valid_url("ftp://files.example.com")  # Non-HTTP protocol
+              False
+              >>> is_valid_url("https://")  # Missing domain
+              False
+              >>> is_valid_url("")  # Empty string
+              False
+          """
+          return url.startswith('http') and '.' in url
+      ```
+
+  - scenario: Password strength with edge cases
+    before: |
+      ```python
+      def check_password_strength(password):
+          """Check password strength."""
+          return len(password) >= 8 and any(c.isupper() for c in password)
+      ```
+    after: |
+      ```python
+      def check_password_strength(password):
+          """Check password strength.
+          
+          Examples:
+              >>> check_password_strength("Password123")
+              True
+              >>> check_password_strength("PASSWORD")  # All caps, no numbers
+              False
+              >>> check_password_strength("password")  # No capitals
+              False
+              >>> check_password_strength("Pass1")     # Too short
+              False
+              >>> check_password_strength("П@ssw0rd")  # Unicode characters
+              True
+              >>> check_password_strength("")          # Empty password
+              False
+          """
+          return len(password) >= 8 and any(c.isupper() for c in password)
+      ```
+
+  - scenario: JSON path extraction
+    before: |
+      ```python
+      def get_nested_value(data, path):
+          """Get value from nested dict using dot notation."""
+          keys = path.split('.')
+          for key in keys:
+              data = data[key]
+          return data
+      ```
+    after: |
+      ```python
+      def get_nested_value(data, path):
+          """Get value from nested dict using dot notation.
+          
+          Examples:
+              >>> get_nested_value({'user': {'name': 'John'}}, 'user.name')
+              'John'
+              >>> get_nested_value({'a': {'b': {'c': 42}}}, 'a.b.c')
+              42
+              >>> get_nested_value({}, 'missing.key')  # Raises KeyError
+              KeyError: 'missing'
+              >>> get_nested_value({'user': None}, 'user.name')  # Raises TypeError
+              TypeError: 'NoneType' object is not subscriptable
+          """
+          keys = path.split('.')
+          for key in keys:
+              data = data[key]
+          return data
+      ```
+
+  - scenario: File size formatting
+    before: |
+      ```python
+      def format_file_size(bytes_size):
+          """Format file size in human readable format."""
+          for unit in ['B', 'KB', 'MB', 'GB']:
+              if bytes_size < 1024:
+                  return f"{bytes_size:.1f} {unit}"
+              bytes_size /= 1024
+          return f"{bytes_size:.1f} TB"
+      ```
+    after: |
+      ```python
+      def format_file_size(bytes_size):
+          """Format file size in human readable format.
+          
+          Examples:
+              >>> format_file_size(512)
+              "512.0 B"
+              >>> format_file_size(1536)  # 1.5 KB
+              "1.5 KB"
+              >>> format_file_size(0)     # Zero bytes
+              "0.0 B"
+              >>> format_file_size(1024**4)  # 1 TB
+              "1.0 TB"
+              >>> format_file_size(1024**5)  # Beyond TB
+              "1024.0 TB"
+          """
+          for unit in ['B', 'KB', 'MB', 'GB']:
+              if bytes_size < 1024:
+                  return f"{bytes_size:.1f} {unit}"
+              bytes_size /= 1024
+          return f"{bytes_size:.1f} TB"
+      ```
+
+  - scenario: Email domain extraction
+    before: |
+      ```python
+      def extract_domain(email):
+          """Extract domain from email address."""
+          return email.split('@')[1]
+      ```
+    after: |
+      ```python
+      def extract_domain(email):
+          """Extract domain from email address.
+          
+          Examples:
+              >>> extract_domain("user@example.com")
+              "example.com"
+              >>> extract_domain("test.user+tag@subdomain.example.org")
+              "subdomain.example.org"
+              >>> extract_domain("user@")  # Missing domain
+              ""
+              >>> extract_domain("invalid-email")  # No @ symbol
+              IndexError: list index out of range
+              >>> extract_domain("user@domain@extra")  # Multiple @ symbols
+              "domain@extra"
+          """
+          return email.split('@')[1]
+      ```
+
+  - scenario: Currency conversion with rounding
+    before: |
+      ```python
+      def convert_currency(amount, rate):
+          """Convert currency using exchange rate."""
+          return round(amount * rate, 2)
+      ```
+    after: |
+      ```python
+      def convert_currency(amount, rate):
+          """Convert currency using exchange rate.
+          
+          Examples:
+              >>> convert_currency(100.00, 1.25)
+              125.0
+              >>> convert_currency(99.99, 0.85)  # Fractional result
+              84.99
+              >>> convert_currency(0, 1.5)       # Zero amount
+              0.0
+              >>> convert_currency(100, 0)       # Zero rate
+              0.0
+              >>> convert_currency(-50, 1.2)     # Negative amount
+              -60.0
+          """
+          return round(amount * rate, 2)
+      ```
+
+  - scenario: Text truncation with word boundaries
+    before: |
+      ```python
+      def truncate_text(text, max_length):
+          """Truncate text to maximum length."""
+          if len(text) <= max_length:
+              return text
+          return text[:max_length-3] + '...'
+      ```
+    after: |
+      ```python
+      def truncate_text(text, max_length):
+          """Truncate text to maximum length.
+          
+          Examples:
+              >>> truncate_text("Hello world", 20)
+              "Hello world"
+              >>> truncate_text("This is a long sentence", 10)
+              "This is..."
+              >>> truncate_text("Short", 3)   # Shorter than ellipsis
+              "..."
+              >>> truncate_text("", 10)       # Empty string
+              ""
+              >>> truncate_text("NoSpaces", 5)  # No word boundaries
+              "No..."
+          """
+          if len(text) <= max_length:
+              return text
+          return text[:max_length-3] + '...'
+      ```
+
+  - scenario: Age calculation with leap years
+    before: |
+      ```python
+      def calculate_age(birth_date):
+          """Calculate age from birth date."""
+          today = datetime.today()
+          return today.year - birth_date.year
+      ```
+    after: |
+      ```python
+      def calculate_age(birth_date):
+          """Calculate age from birth date.
+          
+          Examples:
+              >>> calculate_age(datetime(1990, 6, 15))  # Assuming today is 2023-08-20
+              33
+              >>> calculate_age(datetime(2000, 12, 25))  # Birthday hasn't occurred
+              22
+              >>> calculate_age(datetime(1992, 2, 29))   # Leap year baby
+              31
+              >>> calculate_age(datetime.today())        # Born today
+              0
+              >>> calculate_age(datetime(2025, 1, 1))    # Future date
+              -2
+          """
+          today = datetime.today()
+          return today.year - birth_date.year
+      ```
+
+  - scenario: Slug generation from text
+    before: |
+      ```python
+      def create_slug(text):
+          """Create URL-friendly slug from text."""
+          return text.lower().replace(' ', '-')
+      ```
+    after: |
+      ```python
+      def create_slug(text):
+          """Create URL-friendly slug from text.
+          
+          Examples:
+              >>> create_slug("Hello World")
+              "hello-world"
+              >>> create_slug("Special Characters! @#$")
+              "special-characters!-@#$"
+              >>> create_slug("Multiple   Spaces")
+              "multiple---spaces"
+              >>> create_slug("")  # Empty string
+              ""
+              >>> create_slug("CamelCase123")
+              "camelcase123"
+              >>> create_slug("Héllo Wörld")  # Unicode characters
+              "héllo-wörld"
+          """
+          return text.lower().replace(' ', '-')
+      ```
+
+  - scenario: Temperature conversion with absolute zero
+    before: |
+      ```python
+      def celsius_to_fahrenheit(celsius):
+          """Convert Celsius to Fahrenheit."""
+          return (celsius * 9/5) + 32
+      ```
+    after: |
+      ```python
+      def celsius_to_fahrenheit(celsius):
+          """Convert Celsius to Fahrenheit.
+          
+          Examples:
+              >>> celsius_to_fahrenheit(0)      # Water freezing point
+              32.0
+              >>> celsius_to_fahrenheit(100)    # Water boiling point
+              212.0
+              >>> celsius_to_fahrenheit(-273.15)  # Absolute zero
+              -459.67
+              >>> celsius_to_fahrenheit(37)     # Human body temperature
+              98.6
+              >>> celsius_to_fahrenheit(-40)    # Special point where C = F
+              -40.0
+          """
+          return (celsius * 9/5) + 32
+      ```
+
+  - scenario: RGB color validation
+    before: |
+      ```python
+      def is_valid_rgb(r, g, b):
+          """Check if RGB values are valid."""
+          return 0 <= r <= 255 and 0 <= g <= 255 and 0 <= b <= 255
+      ```
+    after: |
+      ```python
+      def is_valid_rgb(r, g, b):
+          """Check if RGB values are valid.
+          
+          Examples:
+              >>> is_valid_rgb(255, 0, 0)    # Pure red
+              True
+              >>> is_valid_rgb(128, 128, 128)  # Gray
+              True
+              >>> is_valid_rgb(0, 0, 0)      # Black
+              True
+              >>> is_valid_rgb(256, 0, 0)    # Red value too high
+              False
+              >>> is_valid_rgb(-1, 0, 0)     # Negative value
+              False
+              >>> is_valid_rgb(255.5, 0, 0)  # Float value
+              True  # Python's <= handles this
+          """
+          return 0 <= r <= 255 and 0 <= g <= 255 and 0 <= b <= 255
+      ```
+
+  - scenario: Pagination calculation
+    before: |
+      ```python
+      def calculate_pages(total_items, items_per_page):
+          """Calculate total number of pages."""
+          return (total_items + items_per_page - 1) // items_per_page
+      ```
+    after: |
+      ```python
+      def calculate_pages(total_items, items_per_page):
+          """Calculate total number of pages.
+          
+          Examples:
+              >>> calculate_pages(100, 10)  # Exact division
+              10
+              >>> calculate_pages(101, 10)  # One extra item
+              11
+              >>> calculate_pages(0, 10)    # No items
+              0
+              >>> calculate_pages(5, 10)    # Less than one page
+              1
+              >>> calculate_pages(10, 1)    # One item per page
+              10
+          """
+          return (total_items + items_per_page - 1) // items_per_page
+      ```
+
+  - scenario: Credit card masking
+    before: |
+      ```python
+      def mask_credit_card(card_number):
+          """Mask credit card number showing only last 4 digits."""
+          return '*' * (len(card_number) - 4) + card_number[-4:]
+      ```
+    after: |
+      ```python
+      def mask_credit_card(card_number):
+          """Mask credit card number showing only last 4 digits.
+          
+          Examples:
+              >>> mask_credit_card("1234567890123456")
+              "************3456"
+              >>> mask_credit_card("4111-1111-1111-1111")  # With dashes
+              "***************1111"
+              >>> mask_credit_card("123")  # Shorter than 4 digits
+              "123"
+              >>> mask_credit_card("")     # Empty string
+              ""
+              >>> mask_credit_card("1234") # Exactly 4 digits
+              "1234"
+          """
+          return '*' * (len(card_number) - 4) + card_number[-4:]
+      ```
+
+  - scenario: Time duration formatting
+    before: |
+      ```python
+      def format_duration(seconds):
+          """Format duration in seconds to human readable string."""
+          hours = seconds // 3600
+          minutes = (seconds % 3600) // 60
+          return f"{hours}h {minutes}m"
+      ```
+    after: |
+      ```python
+      def format_duration(seconds):
+          """Format duration in seconds to human readable string.
+          
+          Examples:
+              >>> format_duration(3661)    # 1 hour, 1 minute, 1 second
+              "1h 1m"
+              >>> format_duration(7200)    # Exactly 2 hours
+              "2h 0m"
+              >>> format_duration(59)      # Less than a minute
+              "0h 0m"
+              >>> format_duration(0)       # Zero duration
+              "0h 0m"
+              >>> format_duration(90061)   # 25 hours
+              "25h 1m"
+          """
+          hours = seconds // 3600
+          minutes = (seconds % 3600) // 60
+          return f"{hours}h {minutes}m"
+      ```
+
+  - scenario: Username validation
+    before: |
+      ```python
+      def is_valid_username(username):
+          """Check if username is valid."""
+          return len(username) >= 3 and username.isalnum()
+      ```
+    after: |
+      ```python
+      def is_valid_username(username):
+          """Check if username is valid.
+          
+          Examples:
+              >>> is_valid_username("user123")
+              True
+              >>> is_valid_username("abc")      # Minimum length
+              True
+              >>> is_valid_username("ab")       # Too short
+              False
+              >>> is_valid_username("user_123") # Underscore not allowed
+              False
+              >>> is_valid_username("USER")     # All caps
+              True
+              >>> is_valid_username("")         # Empty string
+              False
+              >>> is_valid_username("123")      # All numbers
+              True
+          """
+          return len(username) >= 3 and username.isalnum()
+      ```
+
+  - scenario: Tax calculation with brackets
+    before: |
+      ```python
+      def calculate_tax(income):
+          """Calculate income tax."""
+          if income <= 50000:
+              return income * 0.15
+          else:
+              return 50000 * 0.15 + (income - 50000) * 0.25
+      ```
+    after: |
+      ```python
+      def calculate_tax(income):
+          """Calculate income tax.
+          
+          Examples:
+              >>> calculate_tax(30000)    # Low bracket
+              4500.0
+              >>> calculate_tax(50000)    # Bracket boundary
+              7500.0
+              >>> calculate_tax(60000)    # High bracket
+              10000.0
+              >>> calculate_tax(0)        # No income
+              0.0
+              >>> calculate_tax(100000)   # High income
+              20000.0
+          """
+          if income <= 50000:
+              return income * 0.15
+          else:
+              return 50000 * 0.15 + (income - 50000) * 0.25
+      ```
+
+  - scenario: Array chunk splitting
+    before: |
+      ```python
+      def chunk_array(array, chunk_size):
+          """Split array into chunks of specified size."""
+          return [array[i:i+chunk_size] for i in range(0, len(array), chunk_size)]
+      ```
+    after: |
+      ```python
+      def chunk_array(array, chunk_size):
+          """Split array into chunks of specified size.
+          
+          Examples:
+              >>> chunk_array([1, 2, 3, 4, 5], 2)
+              [[1, 2], [3, 4], [5]]
+              >>> chunk_array([1, 2, 3, 4], 2)  # Even division
+              [[1, 2], [3, 4]]
+              >>> chunk_array([], 3)            # Empty array
+              []
+              >>> chunk_array([1, 2, 3], 5)     # Chunk larger than array
+              [[1, 2, 3]]
+              >>> chunk_array([1, 2, 3, 4, 5], 1)  # Single item chunks
+              [[1], [2], [3], [4], [5]]
+          """
+          return [array[i:i+chunk_size] for i in range(0, len(array), chunk_size)]
+      ```
+
+  - scenario: Grade calculation with rounding
+    before: |
+      ```python
+      def calculate_grade(scores):
+          """Calculate final grade from list of scores."""
+          average = sum(scores) / len(scores)
+          if average >= 90:
+              return 'A'
+          elif average >= 80:
+              return 'B'
+          return 'C'
+      ```
+    after: |
+      ```python
+      def calculate_grade(scores):
+          """Calculate final grade from list of scores.
+          
+          Examples:
+              >>> calculate_grade([95, 87, 92])
+              'A'
+              >>> calculate_grade([85, 88, 82])  # Average 85
+              'B'
+              >>> calculate_grade([75, 70, 65])  # Below B threshold
+              'C'
+              >>> calculate_grade([89.9])        # Just below A
+              'B'
+              >>> calculate_grade([90.0])        # Exactly A threshold
+              'A'
+              >>> calculate_grade([100, 0, 100]) # Wide range
+              'C'
+          """
+          average = sum(scores) / len(scores)
+          if average >= 90:
+              return 'A'
+          elif average >= 80:
+              return 'B'
+          return 'C'
+      ```
+
+  - scenario: Distance calculation between coordinates
+    before: |
+      ```python
+      def calculate_distance(lat1, lon1, lat2, lon2):
+          """Calculate distance between two coordinates."""
+          import math
+          return math.sqrt((lat2 - lat1)**2 + (lon2 - lon1)**2)
+      ```
+    after: |
+      ```python
+      def calculate_distance(lat1, lon1, lat2, lon2):
+          """Calculate distance between two coordinates.
+          
+          Examples:
+              >>> calculate_distance(0, 0, 3, 4)    # 3-4-5 triangle
+              5.0
+              >>> calculate_distance(0, 0, 0, 0)    # Same point
+              0.0
+              >>> calculate_distance(-1, -1, 1, 1)  # Negative coordinates
+              2.8284271247461903
+              >>> calculate_distance(40.7128, -74.0060, 34.0522, -118.2437)  # NYC to LA
+              44.34677...  # Simplified Euclidean distance
+              >>> calculate_distance(0, 0, 1, 0)    # Horizontal line
+              1.0
+              >>> calculate_distance(0, 0, 0, 1)    # Vertical line
+              1.0
+          """
+          import math
+          return math.sqrt((lat2 - lat1)**2 + (lon2 - lon1)**2)
+      ```
+
+  - scenario: Fibonacci sequence generation
+    before: |
+      ```python
+      def fibonacci(n):
+          """Generate nth Fibonacci number."""
+          if n <= 1:
+              return n
+          return fibonacci(n-1) + fibonacci(n-2)
+      ```
+    after: |
+      ```python
+      def fibonacci(n):
+          """Generate nth Fibonacci number.
+          
+          Examples:
+              >>> fibonacci(0)     # Base case
+              0
+              >>> fibonacci(1)     # Base case
+              1
+              >>> fibonacci(5)     # 0,1,1,2,3,5
+              5
+              >>> fibonacci(10)    # Larger number
+              55
+              >>> fibonacci(-1)    # Negative input
+              -1
+              >>> fibonacci(20)    # Performance consideration
+              6765  # Note: Exponential time complexity
+          """
+          if n <= 1:
+              return n
+          return fibonacci(n-1) + fibonacci(n-2)
+      ```

@@ -1,0 +1,439 @@
+title: Avoid ambiguous pronouns like 'it' in comments
+id: COMM004
+
+description: |-
+  Comments should use specific nouns rather than ambiguous pronouns like "it", 
+  "this", or "that". Clear references make comments much easier to understand, 
+  especially when read out of context or when multiple objects are involved in 
+  the surrounding code.
+
+problems_with_ambiguous_pronouns:
+  - Readers must search context to understand what "it" refers to
+  - Multiple possible referents create confusion
+  - Comments become unclear when code around them changes
+  - Pronouns become more ambiguous as code complexity increases
+  - New team members spend extra time deciphering references
+  - Comments lose meaning when read in isolation
+
+solutions_for_clear_references:
+  - Use specific nouns that clearly identify the object
+  - Repeat the variable or concept name for clarity
+  - Use descriptive phrases instead of pronouns
+  - Be explicit even if it seems repetitive
+  - Consider restructuring comments to avoid pronoun confusion
+  - Use "the data", "the result", "the connection" instead of "it"
+
+examples:
+  - scenario: Data caching logic
+    before: |
+      ```python
+      user_data = fetch_user_profile(user_id)
+      # Insert it into cache if it's not too big
+      if len(str(user_data)) < MAX_CACHE_SIZE:
+          cache.set(user_id, user_data)
+      ```
+    after: |
+      ```python
+      user_data = fetch_user_profile(user_id)
+      # Insert the user data into cache if the profile size is acceptable
+      if len(str(user_data)) < MAX_CACHE_SIZE:
+          cache.set(user_id, user_data)
+      ```
+
+  - scenario: Database connection handling
+    before: |
+      ```python
+      connection = create_db_connection()
+      cursor = connection.cursor()
+      # Close it when done
+      cursor.close()
+      connection.close()
+      ```
+    after: |
+      ```python
+      connection = create_db_connection()
+      cursor = connection.cursor()
+      # Close the database connection when done
+      cursor.close()
+      connection.close()
+      ```
+
+  - scenario: File processing with validation
+    before: |
+      ```python
+      uploaded_file = request.files['document']
+      file_content = uploaded_file.read()
+      # Validate it before processing
+      if is_valid_format(file_content):
+          process_document(file_content)
+      ```
+    after: |
+      ```python
+      uploaded_file = request.files['document']
+      file_content = uploaded_file.read()
+      # Validate the file content before processing
+      if is_valid_format(file_content):
+          process_document(file_content)
+      ```
+
+  - scenario: API response transformation
+    before: |
+      ```python
+      api_response = call_external_api()
+      transformed_data = transform_response(api_response)
+      # Return it to the client
+      return jsonify(transformed_data)
+      ```
+    after: |
+      ```python
+      api_response = call_external_api()
+      transformed_data = transform_response(api_response)
+      # Return the transformed data to the client
+      return jsonify(transformed_data)
+      ```
+
+  - scenario: Configuration loading
+    before: |
+      ```python
+      config = load_configuration()
+      database_url = config.get('database_url')
+      # Use it to establish connection
+      connection = connect_to_database(database_url)
+      ```
+    after: |
+      ```python
+      config = load_configuration()
+      database_url = config.get('database_url')
+      # Use the database URL to establish connection
+      connection = connect_to_database(database_url)
+      ```
+
+  - scenario: Error handling with logging
+    before: |
+      ```python
+      try:
+          result = risky_operation()
+      except Exception as error:
+          # Log it for debugging
+          logger.error(f"Operation failed: {error}")
+          raise
+      ```
+    after: |
+      ```python
+      try:
+          result = risky_operation()
+      except Exception as error:
+          # Log the error for debugging
+          logger.error(f"Operation failed: {error}")
+          raise
+      ```
+
+  - scenario: List filtering and sorting
+    before: |
+      ```python
+      products = get_all_products()
+      active_products = filter_active_products(products)
+      # Sort it by price
+      sorted_products = sorted(active_products, key=lambda p: p.price)
+      ```
+    after: |
+      ```python
+      products = get_all_products()
+      active_products = filter_active_products(products)
+      # Sort the active products by price
+      sorted_products = sorted(active_products, key=lambda p: p.price)
+      ```
+
+  - scenario: User authentication flow
+    before: |
+      ```python
+      user_credentials = extract_credentials(request)
+      auth_token = authenticate_user(user_credentials)
+      # Store it in session
+      session['auth_token'] = auth_token
+      ```
+    after: |
+      ```python
+      user_credentials = extract_credentials(request)
+      auth_token = authenticate_user(user_credentials)
+      # Store the authentication token in session
+      session['auth_token'] = auth_token
+      ```
+
+  - scenario: Image processing pipeline
+    before: |
+      ```python
+      raw_image = load_image(image_path)
+      processed_image = apply_filters(raw_image)
+      # Save it to output directory
+      save_image(processed_image, output_path)
+      ```
+    after: |
+      ```python
+      raw_image = load_image(image_path)
+      processed_image = apply_filters(raw_image)
+      # Save the processed image to output directory
+      save_image(processed_image, output_path)
+      ```
+
+  - scenario: Payment processing
+    before: |
+      ```python
+      payment_data = collect_payment_info()
+      payment_result = process_payment(payment_data)
+      # Email it to customer
+      send_receipt_email(payment_result)
+      ```
+    after: |
+      ```python
+      payment_data = collect_payment_info()
+      payment_result = process_payment(payment_data)
+      # Email the payment receipt to customer
+      send_receipt_email(payment_result)
+      ```
+
+  - scenario: Data aggregation
+    before: |
+      ```python
+      daily_stats = calculate_daily_statistics()
+      monthly_report = aggregate_monthly_data(daily_stats)
+      # Send it to management
+      email_report(monthly_report, management_team)
+      ```
+    after: |
+      ```python
+      daily_stats = calculate_daily_statistics()
+      monthly_report = aggregate_monthly_data(daily_stats)
+      # Send the monthly report to management
+      email_report(monthly_report, management_team)
+      ```
+
+  - scenario: Cache invalidation
+    before: |
+      ```python
+      user_profile = update_user_profile(user_id, new_data)
+      cache_key = f"user_profile_{user_id}"
+      # Remove it from cache
+      cache.delete(cache_key)
+      ```
+    after: |
+      ```python
+      user_profile = update_user_profile(user_id, new_data)
+      cache_key = f"user_profile_{user_id}"
+      # Remove the cached profile from cache
+      cache.delete(cache_key)
+      ```
+
+  - scenario: Queue message processing
+    before: |
+      ```python
+      message = queue.get_next_message()
+      processed_result = handle_message(message)
+      # Acknowledge it was processed
+      queue.acknowledge_message(message.id)
+      ```
+    after: |
+      ```python
+      message = queue.get_next_message()
+      processed_result = handle_message(message)
+      # Acknowledge the message was processed
+      queue.acknowledge_message(message.id)
+      ```
+
+  - scenario: Template rendering
+    before: |
+      ```python
+      template = load_template('email_notification.html')
+      rendered_email = template.render(user_data)
+      # Send it via email service
+      email_service.send(rendered_email, user.email)
+      ```
+    after: |
+      ```python
+      template = load_template('email_notification.html')
+      rendered_email = template.render(user_data)
+      # Send the rendered email via email service
+      email_service.send(rendered_email, user.email)
+      ```
+
+  - scenario: Data validation and sanitization
+    before: |
+      ```python
+      user_input = request.get_json()
+      sanitized_data = sanitize_input(user_input)
+      # Validate it meets requirements
+      if validate_data(sanitized_data):
+          save_to_database(sanitized_data)
+      ```
+    after: |
+      ```python
+      user_input = request.get_json()
+      sanitized_data = sanitize_input(user_input)
+      # Validate the sanitized data meets requirements
+      if validate_data(sanitized_data):
+          save_to_database(sanitized_data)
+      ```
+
+  - scenario: Backup creation
+    before: |
+      ```python
+      database_snapshot = create_database_backup()
+      backup_location = upload_to_cloud_storage(database_snapshot)
+      # Record it in backup log
+      log_backup_completion(backup_location)
+      ```
+    after: |
+      ```python
+      database_snapshot = create_database_backup()
+      backup_location = upload_to_cloud_storage(database_snapshot)
+      # Record the backup location in backup log
+      log_backup_completion(backup_location)
+      ```
+
+  - scenario: Search result formatting
+    before: |
+      ```python
+      search_query = parse_search_request(request)
+      search_results = perform_search(search_query)
+      # Format it for display
+      formatted_results = format_search_results(search_results)
+      ```
+    after: |
+      ```python
+      search_query = parse_search_request(request)
+      search_results = perform_search(search_query)
+      # Format the search results for display
+      formatted_results = format_search_results(search_results)
+      ```
+
+  - scenario: Session management
+    before: |
+      ```python
+      session_data = create_user_session(user)
+      session_token = generate_session_token(session_data)
+      # Store it securely
+      secure_storage.save_session(session_token, session_data)
+      ```
+    after: |
+      ```python
+      session_data = create_user_session(user)
+      session_token = generate_session_token(session_data)
+      # Store the session data securely
+      secure_storage.save_session(session_token, session_data)
+      ```
+
+  - scenario: Notification delivery
+    before: |
+      ```python
+      notification = create_notification(user, message)
+      delivery_result = send_push_notification(notification)
+      # Track it in analytics
+      analytics.track_notification_sent(delivery_result)
+      ```
+    after: |
+      ```python
+      notification = create_notification(user, message)
+      delivery_result = send_push_notification(notification)
+      # Track the delivery result in analytics
+      analytics.track_notification_sent(delivery_result)
+      ```
+
+  - scenario: Report generation
+    before: |
+      ```python
+      sales_data = fetch_sales_data(date_range)
+      sales_report = generate_sales_report(sales_data)
+      # Export it as PDF
+      pdf_file = export_to_pdf(sales_report)
+      ```
+    after: |
+      ```python
+      sales_data = fetch_sales_data(date_range)
+      sales_report = generate_sales_report(sales_data)
+      # Export the sales report as PDF
+      pdf_file = export_to_pdf(sales_report)
+      ```
+
+  - scenario: Model training results
+    before: |
+      ```python
+      training_data = prepare_training_dataset()
+      trained_model = train_machine_learning_model(training_data)
+      # Evaluate it on test set
+      evaluation_results = evaluate_model(trained_model, test_data)
+      ```
+    after: |
+      ```python
+      training_data = prepare_training_dataset()
+      trained_model = train_machine_learning_model(training_data)
+      # Evaluate the trained model on test set
+      evaluation_results = evaluate_model(trained_model, test_data)
+      ```
+
+  - scenario: Content moderation
+    before: |
+      ```python
+      user_post = extract_post_content(request)
+      moderation_result = moderate_content(user_post)
+      # Approve it if clean
+      if moderation_result.is_clean:
+          publish_post(user_post)
+      ```
+    after: |
+      ```python
+      user_post = extract_post_content(request)
+      moderation_result = moderate_content(user_post)
+      # Approve the post if clean
+      if moderation_result.is_clean:
+          publish_post(user_post)
+      ```
+
+  - scenario: Inventory update
+    before: |
+      ```python
+      product_shipment = receive_new_shipment()
+      inventory_changes = process_shipment(product_shipment)
+      # Apply it to inventory system
+      update_inventory_levels(inventory_changes)
+      ```
+    after: |
+      ```python
+      product_shipment = receive_new_shipment()
+      inventory_changes = process_shipment(product_shipment)
+      # Apply the inventory changes to inventory system
+      update_inventory_levels(inventory_changes)
+      ```
+
+  - scenario: Security token refresh
+    before: |
+      ```python
+      expired_token = get_current_auth_token()
+      new_token = refresh_authentication_token(expired_token)
+      # Update it in storage
+      token_storage.update_token(user_id, new_token)
+      ```
+    after: |
+      ```python
+      expired_token = get_current_auth_token()
+      new_token = refresh_authentication_token(expired_token)
+      # Update the authentication token in storage
+      token_storage.update_token(user_id, new_token)
+      ```
+
+  - scenario: Performance metrics collection
+    before: |
+      ```python
+      start_time = time.time()
+      operation_result = perform_expensive_operation()
+      execution_time = time.time() - start_time
+      # Log it for monitoring
+      performance_logger.log_execution_time('expensive_op', execution_time)
+      ```
+    after: |
+      ```python
+      start_time = time.time()
+      operation_result = perform_expensive_operation()
+      execution_time = time.time() - start_time
+      # Log the execution time for monitoring
+      performance_logger.log_execution_time('expensive_op', execution_time)
+      ```

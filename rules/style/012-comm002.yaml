@@ -1,0 +1,465 @@
+title: Use TODO/FIXME/HACK tags to flag issues for future maintainers
+id: COMM002
+
+description: |-
+  Use standardized tags like TODO, FIXME, and HACK to clearly communicate 
+  known issues and improvement opportunities to future maintainers. These tags 
+  make it easy to search for and prioritize technical debt across the codebase.
+
+problems_with_vague_improvement_comments:
+  - They're hard to find and track across the codebase
+  - Priority and urgency are unclear
+  - They lack searchable, standardized format
+  - Team members may not notice them during code review
+  - They don't indicate whether the issue affects functionality
+  - No clear ownership or timeline is established
+
+solutions_for_effective_tagging:
+  - Use TODO for planned improvements and missing features
+  - Use FIXME for bugs and issues that need correction
+  - Use HACK for temporary workarounds that need proper solutions
+  - Include specific descriptions of what needs to be done
+  - Add owner and date information when possible
+  - Set up automated tools to track and report on these tags
+  - Review tags regularly during code maintenance cycles
+
+examples:
+  - scenario: Performance optimization needed
+    before: |
+      ```python
+      # need better algorithm
+      def search_users(query):
+          for user in all_users:
+              if query.lower() in user.name.lower():
+                  yield user
+      ```
+    after: |
+      ```python
+      # TODO: Replace O(n) search with database index for better performance
+      def search_users(query):
+          for user in all_users:
+              if query.lower() in user.name.lower():
+                  yield user
+      ```
+
+  - scenario: Known bug that needs fixing
+    before: |
+      ```python
+      # this breaks sometimes
+      def calculate_discount(price, coupon):
+          if coupon:
+              return price * 0.9
+          return price
+      ```
+    after: |
+      ```python
+      # FIXME: Handle expired coupons and invalid coupon codes
+      def calculate_discount(price, coupon):
+          if coupon:
+              return price * 0.9
+          return price
+      ```
+
+  - scenario: Temporary workaround
+    before: |
+      ```python
+      # quick fix for demo
+      def get_user_avatar(user_id):
+          return f"/static/avatars/default.png"
+      ```
+    after: |
+      ```python
+      # HACK: Always return default avatar until user upload feature is implemented
+      def get_user_avatar(user_id):
+          return f"/static/avatars/default.png"
+      ```
+
+  - scenario: Database connection handling
+    before: |
+      ```python
+      # should add connection pooling
+      def get_db_connection():
+          return sqlite3.connect('app.db')
+      ```
+    after: |
+      ```python
+      # TODO: Implement connection pooling to improve performance under load
+      def get_db_connection():
+          return sqlite3.connect('app.db')
+      ```
+
+  - scenario: Error handling improvement
+    before: |
+      ```python
+      # catch more specific errors
+      try:
+          result = api_call()
+      except Exception:
+          return None
+      ```
+    after: |
+      ```python
+      # FIXME: Handle specific HTTP errors (timeout, 404, 500) differently
+      try:
+          result = api_call()
+      except Exception:
+          return None
+      ```
+
+  - scenario: Security vulnerability
+    before: |
+      ```python
+      # validate input
+      def execute_query(sql):
+          cursor.execute(sql)
+          return cursor.fetchall()
+      ```
+    after: |
+      ```python
+      # FIXME: Use parameterized queries to prevent SQL injection
+      def execute_query(sql):
+          cursor.execute(sql)
+          return cursor.fetchall()
+      ```
+
+  - scenario: Missing feature implementation
+    before: |
+      ```python
+      # add pagination later
+      def get_posts():
+          return Post.objects.all()
+      ```
+    after: |
+      ```python
+      # TODO: Add pagination to handle large datasets efficiently
+      def get_posts():
+          return Post.objects.all()
+      ```
+
+  - scenario: Memory usage optimization
+    before: |
+      ```python
+      # optimize memory usage
+      def load_large_dataset():
+          return [process_row(row) for row in csv.reader(open('huge_file.csv'))]
+      ```
+    after: |
+      ```python
+      # TODO: Use generator or chunked reading to reduce memory footprint
+      def load_large_dataset():
+          return [process_row(row) for row in csv.reader(open('huge_file.csv'))]
+      ```
+
+  - scenario: Configuration management
+    before: |
+      ```python
+      # move to config file
+      API_KEY = "abc123"
+      DATABASE_URL = "sqlite:///local.db"
+      ```
+    after: |
+      ```python
+      # TODO: Move hardcoded values to environment variables or config file
+      API_KEY = "abc123"
+      DATABASE_URL = "sqlite:///local.db"
+      ```
+
+  - scenario: Logging improvement
+    before: |
+      ```python
+      # add better logging
+      def process_payment(amount):
+          print(f"Processing {amount}")
+          return charge_card(amount)
+      ```
+    after: |
+      ```python
+      # TODO: Replace print statements with structured logging (JSON format)
+      def process_payment(amount):
+          print(f"Processing {amount}")
+          return charge_card(amount)
+      ```
+
+  - scenario: Code duplication issue
+    before: |
+      ```python
+      # extract common logic
+      def validate_email(email):
+          if '@' not in email or '.' not in email.split('@')[1]:
+              return False
+          return True
+      
+      def validate_admin_email(email):
+          if '@' not in email or '.' not in email.split('@')[1]:
+              return False
+          return email.endswith('@company.com')
+      ```
+    after: |
+      ```python
+      # TODO: Extract email validation logic into shared utility function
+      def validate_email(email):
+          if '@' not in email or '.' not in email.split('@')[1]:
+              return False
+          return True
+      
+      def validate_admin_email(email):
+          if '@' not in email or '.' not in email.split('@')[1]:
+              return False
+          return email.endswith('@company.com')
+      ```
+
+  - scenario: API rate limiting
+    before: |
+      ```python
+      # add rate limiting
+      def api_endpoint():
+          data = expensive_computation()
+          return jsonify(data)
+      ```
+    after: |
+      ```python
+      # TODO: Implement rate limiting to prevent API abuse (100 req/min per user)
+      def api_endpoint():
+          data = expensive_computation()
+          return jsonify(data)
+      ```
+
+  - scenario: Legacy code replacement
+    before: |
+      ```python
+      # replace with modern approach
+      def parse_xml(xml_string):
+          return BeautifulSoup(xml_string, 'html.parser')
+      ```
+    after: |
+      ```python
+      # HACK: Using HTML parser for XML until proper XML parser is configured
+      def parse_xml(xml_string):
+          return BeautifulSoup(xml_string, 'html.parser')
+      ```
+
+  - scenario: Test coverage gap
+    before: |
+      ```python
+      # needs unit tests
+      def calculate_shipping_cost(weight, distance, priority):
+          base_cost = weight * 0.5
+          distance_cost = distance * 0.1
+          priority_multiplier = 1.5 if priority else 1.0
+          return (base_cost + distance_cost) * priority_multiplier
+      ```
+    after: |
+      ```python
+      # TODO: Add unit tests for edge cases (zero weight, negative distance)
+      def calculate_shipping_cost(weight, distance, priority):
+          base_cost = weight * 0.5
+          distance_cost = distance * 0.1
+          priority_multiplier = 1.5 if priority else 1.0
+          return (base_cost + distance_cost) * priority_multiplier
+      ```
+
+  - scenario: Hardcoded business logic
+    before: |
+      ```python
+      # make configurable
+      def apply_late_fee(days_late):
+          if days_late > 30:
+              return 50.0
+          elif days_late > 7:
+              return 25.0
+          return 0.0
+      ```
+    after: |
+      ```python
+      # TODO: Move late fee rules to database configuration table
+      def apply_late_fee(days_late):
+          if days_late > 30:
+              return 50.0
+          elif days_late > 7:
+              return 25.0
+          return 0.0
+      ```
+
+  - scenario: Browser compatibility issue
+    before: |
+      ```python
+      # handle IE compatibility
+      def generate_css():
+          return """
+          .container { display: flex; }
+          """
+      ```
+    after: |
+      ```python
+      # HACK: Remove flexbox fallbacks once IE support is dropped (Q2 2024)
+      def generate_css():
+          return """
+          .container { display: flex; }
+          """
+      ```
+
+  - scenario: Caching implementation
+    before: |
+      ```python
+      # add caching
+      def get_user_profile(user_id):
+          return database.query('SELECT * FROM users WHERE id = ?', user_id)
+      ```
+    after: |
+      ```python
+      # TODO: Add Redis caching with 1-hour TTL for user profiles
+      def get_user_profile(user_id):
+          return database.query('SELECT * FROM users WHERE id = ?', user_id)
+      ```
+
+  - scenario: Input validation missing
+    before: |
+      ```python
+      # validate user input
+      def create_user(username, email, age):
+          user = User(username=username, email=email, age=age)
+          user.save()
+          return user
+      ```
+    after: |
+      ```python
+      # FIXME: Add input validation (username length, email format, age range)
+      def create_user(username, email, age):
+          user = User(username=username, email=email, age=age)
+          user.save()
+          return user
+      ```
+
+  - scenario: Monitoring and alerts
+    before: |
+      ```python
+      # add monitoring
+      def process_order(order):
+          payment_result = charge_credit_card(order.total)
+          if payment_result.success:
+              fulfill_order(order)
+          return payment_result
+      ```
+    after: |
+      ```python
+      # TODO: Add monitoring alerts for failed payments and fulfillment errors
+      def process_order(order):
+          payment_result = charge_credit_card(order.total)
+          if payment_result.success:
+              fulfill_order(order)
+          return payment_result
+      ```
+
+  - scenario: Data migration needed
+    before: |
+      ```python
+      # migrate old data format
+      def get_user_preferences(user_id):
+          prefs = redis.get(f'user:{user_id}:prefs')
+          if prefs:
+              return json.loads(prefs)
+          return default_preferences()
+      ```
+    after: |
+      ```python
+      # TODO: Migrate legacy preference format to new schema by end of month
+      def get_user_preferences(user_id):
+          prefs = redis.get(f'user:{user_id}:prefs')
+          if prefs:
+              return json.loads(prefs)
+          return default_preferences()
+      ```
+
+  - scenario: Third-party API dependency
+    before: |
+      ```python
+      # handle API deprecation
+      def get_weather_data(city):
+          response = requests.get(f'http://old-api.weather.com/v1/{city}')
+          return response.json()
+      ```
+    after: |
+      ```python
+      # FIXME: Migrate to v2 API before v1 shutdown on March 1st, 2024
+      def get_weather_data(city):
+          response = requests.get(f'http://old-api.weather.com/v1/{city}')
+          return response.json()
+      ```
+
+  - scenario: Resource cleanup
+    before: |
+      ```python
+      # cleanup resources
+      def process_file(filename):
+          file = open(filename, 'r')
+          data = file.read()
+          result = transform_data(data)
+          return result
+      ```
+    after: |
+      ```python
+      # FIXME: Use context manager to ensure file is properly closed
+      def process_file(filename):
+          file = open(filename, 'r')
+          data = file.read()
+          result = transform_data(data)
+          return result
+      ```
+
+  - scenario: Algorithm complexity
+    before: |
+      ```python
+      # improve efficiency
+      def find_duplicates(items):
+          duplicates = []
+          for i, item in enumerate(items):
+              for j, other in enumerate(items[i+1:], i+1):
+                  if item == other and item not in duplicates:
+                      duplicates.append(item)
+          return duplicates
+      ```
+    after: |
+      ```python
+      # TODO: Replace O(n²) algorithm with set-based O(n) solution
+      def find_duplicates(items):
+          duplicates = []
+          for i, item in enumerate(items):
+              for j, other in enumerate(items[i+1:], i+1):
+                  if item == other and item not in duplicates:
+                      duplicates.append(item)
+          return duplicates
+      ```
+
+  - scenario: Feature flag management
+    before: |
+      ```python
+      # remove feature flag
+      def show_new_dashboard(user):
+          if user.beta_tester or user.admin:
+              return render_template('dashboard_v2.html')
+          return render_template('dashboard_v1.html')
+      ```
+    after: |
+      ```python
+      # TODO: Remove feature flag after v2 dashboard rollout is complete
+      def show_new_dashboard(user):
+          if user.beta_tester or user.admin:
+              return render_template('dashboard_v2.html')
+          return render_template('dashboard_v1.html')
+      ```
+
+  - scenario: Documentation update needed
+    before: |
+      ```python
+      # update docs
+      def calculate_tax(income, state):
+          # Complex tax calculation logic here
+          return income * get_tax_rate(state)
+      ```
+    after: |
+      ```python
+      # TODO: Update API documentation with new state tax calculation rules
+      def calculate_tax(income, state):
+          # Complex tax calculation logic here
+          return income * get_tax_rate(state)
+      ```

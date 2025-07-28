@@ -1,0 +1,974 @@
+title: Keep variable declarations close to their usage
+id: FMT005
+
+description: |-
+  Variables should be declared as close as possible to where they are first used.
+  This reduces cognitive load by making the relationship between declaration and 
+  usage immediately visible, and it helps prevent bugs from uninitialized or 
+  incorrectly initialized variables.
+
+problems_with_distant_variable_declarations:
+  - Developers must scroll up to find variable initialization
+  - Increased cognitive load trying to track variable state
+  - Higher risk of using variables before proper initialization
+  - Variables may be initialized with wrong values for their actual use
+  - Code becomes harder to refactor and reorganize
+  - Unused variables are less obvious when far from usage
+
+solutions_for_close_variable_declarations:
+  - Declare variables in the smallest possible scope
+  - Initialize variables just before their first use
+  - Use loop variables declared in the loop statement
+  - Avoid declaring all variables at function start
+  - Group related variable declarations together
+  - Consider splitting large functions if variables are far from usage
+
+examples:
+  - scenario: Shopping cart calculation
+    before: |
+      ```python
+      def calculate_order_total(cart):
+          subtotal = 0
+          tax_rate = 0.08
+          shipping_fee = 5.99
+          discount = 0
+          
+          # many lines of processing here
+          
+          for item in cart.items:
+              subtotal += item.price * item.quantity
+          
+          discount = apply_promo_code(cart.promo_code)
+          tax = subtotal * tax_rate
+          
+          return subtotal + tax + shipping_fee - discount
+      ```
+    after: |
+      ```python
+      def calculate_order_total(cart):
+          # Calculate item costs
+          subtotal = 0
+          for item in cart.items:
+              subtotal += item.price * item.quantity
+          
+          # Apply discounts
+          discount = apply_promo_code(cart.promo_code)
+          
+          # Calculate additional fees
+          tax_rate = 0.08
+          tax = subtotal * tax_rate
+          shipping_fee = 5.99
+          
+          return subtotal + tax + shipping_fee - discount
+      ```
+
+  - scenario: Database connection handling
+    before: |
+      ```python
+      def process_user_data(user_ids):
+          connection = None
+          cursor = None
+          results = []
+          batch_size = 100
+          
+          # extensive setup and validation logic
+          
+          connection = get_db_connection()
+          cursor = connection.cursor()
+          
+          for batch in chunk_list(user_ids, batch_size):
+              cursor.execute(query, batch)
+              results.extend(cursor.fetchall())
+          
+          cursor.close()
+          connection.close()
+          return results
+      ```
+    after: |
+      ```python
+      def process_user_data(user_ids):
+          # extensive setup and validation logic
+          
+          connection = get_db_connection()
+          cursor = connection.cursor()
+          
+          results = []
+          batch_size = 100
+          for batch in chunk_list(user_ids, batch_size):
+              cursor.execute(query, batch)
+              results.extend(cursor.fetchall())
+          
+          cursor.close()
+          connection.close()
+          return results
+      ```
+
+  - scenario: File processing with multiple formats
+    before: |
+      ```python
+      def convert_documents(input_dir, output_dir):
+          pdf_converter = None
+          word_converter = None
+          excel_converter = None
+          converted_count = 0
+          error_count = 0
+          
+          # setup logging and validation
+          
+          for filename in os.listdir(input_dir):
+              if filename.endswith('.pdf'):
+                  pdf_converter = PDFConverter()
+                  result = pdf_converter.convert(filename)
+              elif filename.endswith('.docx'):
+                  word_converter = WordConverter()
+                  result = word_converter.convert(filename)
+              elif filename.endswith('.xlsx'):
+                  excel_converter = ExcelConverter()
+                  result = excel_converter.convert(filename)
+          
+          return converted_count, error_count
+      ```
+    after: |
+      ```python
+      def convert_documents(input_dir, output_dir):
+          # setup logging and validation
+          
+          converted_count = 0
+          error_count = 0
+          
+          for filename in os.listdir(input_dir):
+              if filename.endswith('.pdf'):
+                  pdf_converter = PDFConverter()
+                  result = pdf_converter.convert(filename)
+              elif filename.endswith('.docx'):
+                  word_converter = WordConverter()
+                  result = word_converter.convert(filename)
+              elif filename.endswith('.xlsx'):
+                  excel_converter = ExcelConverter()
+                  result = excel_converter.convert(filename)
+          
+          return converted_count, error_count
+      ```
+
+  - scenario: Image processing pipeline
+    before: |
+      ```python
+      def enhance_photos(photo_list):
+          brightness_adjustment = 0.2
+          contrast_multiplier = 1.1
+          saturation_boost = 0.15
+          noise_reduction_strength = 0.3
+          sharpness_filter = None
+          processed_images = []
+          
+          # configuration and setup code
+          
+          for photo in photo_list:
+              img = load_image(photo.path)
+              img = adjust_brightness(img, brightness_adjustment)
+              img = adjust_contrast(img, contrast_multiplier)
+              
+              sharpness_filter = create_sharpness_filter(photo.camera_type)
+              img = apply_filter(img, sharpness_filter)
+              
+              processed_images.append(img)
+          
+          return processed_images
+      ```
+    after: |
+      ```python
+      def enhance_photos(photo_list):
+          # configuration and setup code
+          
+          processed_images = []
+          
+          for photo in photo_list:
+              img = load_image(photo.path)
+              
+              brightness_adjustment = 0.2
+              img = adjust_brightness(img, brightness_adjustment)
+              
+              contrast_multiplier = 1.1
+              img = adjust_contrast(img, contrast_multiplier)
+              
+              sharpness_filter = create_sharpness_filter(photo.camera_type)
+              img = apply_filter(img, sharpness_filter)
+              
+              processed_images.append(img)
+          
+          return processed_images
+      ```
+
+  - scenario: API request with authentication
+    before: |
+      ```python
+      def fetch_user_profile(user_id):
+          auth_token = None
+          headers = {}
+          api_endpoint = None
+          timeout_seconds = 30
+          retry_count = 3
+          response_data = None
+          
+          # logging and validation setup
+          
+          auth_token = get_auth_token()
+          headers = {'Authorization': f'Bearer {auth_token}'}
+          api_endpoint = f'{API_BASE_URL}/users/{user_id}'
+          
+          for attempt in range(retry_count):
+              response = requests.get(api_endpoint, headers=headers, timeout=timeout_seconds)
+              if response.status_code == 200:
+                  response_data = response.json()
+                  break
+          
+          return response_data
+      ```
+    after: |
+      ```python
+      def fetch_user_profile(user_id):
+          # logging and validation setup
+          
+          auth_token = get_auth_token()
+          headers = {'Authorization': f'Bearer {auth_token}'}
+          api_endpoint = f'{API_BASE_URL}/users/{user_id}'
+          
+          retry_count = 3
+          timeout_seconds = 30
+          
+          for attempt in range(retry_count):
+              response = requests.get(api_endpoint, headers=headers, timeout=timeout_seconds)
+              if response.status_code == 200:
+                  response_data = response.json()
+                  return response_data
+          
+          return None
+      ```
+
+  - scenario: Game entity spawning system
+    before: |
+      ```python
+      def spawn_enemies(level_config):
+          enemy_types = ['goblin', 'orc', 'troll']
+          spawn_locations = []
+          spawn_probabilities = [0.6, 0.3, 0.1]
+          max_enemies = 20
+          current_enemies = 0
+          spawn_timer = 0
+          
+          # game state initialization
+          
+          for location in level_config.spawn_points:
+              enemy_type = random.choices(enemy_types, weights=spawn_probabilities)[0]
+              
+              if current_enemies < max_enemies:
+                  enemy = create_enemy(enemy_type, location)
+                  spawn_locations.append(location)
+                  current_enemies += 1
+          
+          return spawn_locations
+      ```
+    after: |
+      ```python
+      def spawn_enemies(level_config):
+          # game state initialization
+          
+          enemy_types = ['goblin', 'orc', 'troll']
+          spawn_probabilities = [0.6, 0.3, 0.1]
+          
+          spawn_locations = []
+          max_enemies = 20
+          current_enemies = 0
+          
+          for location in level_config.spawn_points:
+              enemy_type = random.choices(enemy_types, weights=spawn_probabilities)[0]
+              
+              if current_enemies < max_enemies:
+                  enemy = create_enemy(enemy_type, location)
+                  spawn_locations.append(location)
+                  current_enemies += 1
+          
+          return spawn_locations
+      ```
+
+  - scenario: Financial report generation
+    before: |
+      ```python
+      def generate_monthly_report(account_data):
+          total_income = 0
+          total_expenses = 0
+          profit_margin = 0
+          tax_rate = 0.25
+          report_sections = []
+          chart_data = {}
+          
+          # report configuration and setup
+          
+          for transaction in account_data.transactions:
+              if transaction.type == 'income':
+                  total_income += transaction.amount
+              else:
+                  total_expenses += transaction.amount
+          
+          profit = total_income - total_expenses
+          profit_margin = (profit / total_income) * 100 if total_income > 0 else 0
+          
+          estimated_tax = profit * tax_rate
+          
+          return {
+              'profit': profit,
+              'margin': profit_margin,
+              'tax': estimated_tax
+          }
+      ```
+    after: |
+      ```python
+      def generate_monthly_report(account_data):
+          # report configuration and setup
+          
+          total_income = 0
+          total_expenses = 0
+          
+          for transaction in account_data.transactions:
+              if transaction.type == 'income':
+                  total_income += transaction.amount
+              else:
+                  total_expenses += transaction.amount
+          
+          profit = total_income - total_expenses
+          profit_margin = (profit / total_income) * 100 if total_income > 0 else 0
+          
+          tax_rate = 0.25
+          estimated_tax = profit * tax_rate
+          
+          return {
+              'profit': profit,
+              'margin': profit_margin,
+              'tax': estimated_tax
+          }
+      ```
+
+  - scenario: Music playlist analyzer
+    before: |
+      ```python
+      def analyze_playlist(songs):
+          total_duration = 0
+          genre_counts = {}
+          decade_distribution = {}
+          energy_score = 0
+          danceability_score = 0
+          artist_frequency = {}
+          
+          # analysis configuration
+          
+          for song in songs:
+              total_duration += song.duration
+              
+              genre = song.genre
+              if genre in genre_counts:
+                  genre_counts[genre] += 1
+              else:
+                  genre_counts[genre] = 1
+              
+              decade = (song.year // 10) * 10
+              decade_distribution[decade] = decade_distribution.get(decade, 0) + 1
+              
+              energy_score += song.energy
+              danceability_score += song.danceability
+          
+          avg_energy = energy_score / len(songs)
+          avg_danceability = danceability_score / len(songs)
+          
+          return {
+              'duration': total_duration,
+              'genres': genre_counts,
+              'energy': avg_energy,
+              'danceability': avg_danceability
+          }
+      ```
+    after: |
+      ```python
+      def analyze_playlist(songs):
+          # analysis configuration
+          
+          total_duration = 0
+          genre_counts = {}
+          decade_distribution = {}
+          energy_score = 0
+          danceability_score = 0
+          
+          for song in songs:
+              total_duration += song.duration
+              
+              genre = song.genre
+              if genre in genre_counts:
+                  genre_counts[genre] += 1
+              else:
+                  genre_counts[genre] = 1
+              
+              decade = (song.year // 10) * 10
+              decade_distribution[decade] = decade_distribution.get(decade, 0) + 1
+              
+              energy_score += song.energy
+              danceability_score += song.danceability
+          
+          avg_energy = energy_score / len(songs)
+          avg_danceability = danceability_score / len(songs)
+          
+          return {
+              'duration': total_duration,
+              'genres': genre_counts,
+              'energy': avg_energy,
+              'danceability': avg_danceability
+          }
+      ```
+
+  - scenario: Smart home device control
+    before: |
+      ```python
+      def execute_evening_routine():
+          living_room_lights = None
+          bedroom_lights = None
+          kitchen_lights = None
+          thermostat_temp = 72
+          security_system = None
+          music_volume = 30
+          
+          # device discovery and setup
+          
+          current_time = datetime.now().hour
+          if current_time >= 18:  # After 6 PM
+              living_room_lights = get_device('living_room_lights')
+              living_room_lights.set_brightness(60)
+              
+              bedroom_lights = get_device('bedroom_lights')
+              bedroom_lights.set_brightness(40)
+              
+              thermostat = get_device('thermostat')
+              thermostat.set_temperature(thermostat_temp)
+              
+              speaker = get_device('smart_speaker')
+              speaker.set_volume(music_volume)
+      ```
+    after: |
+      ```python
+      def execute_evening_routine():
+          # device discovery and setup
+          
+          current_time = datetime.now().hour
+          if current_time >= 18:  # After 6 PM
+              living_room_lights = get_device('living_room_lights')
+              living_room_lights.set_brightness(60)
+              
+              bedroom_lights = get_device('bedroom_lights')
+              bedroom_lights.set_brightness(40)
+              
+              thermostat = get_device('thermostat')
+              thermostat_temp = 72
+              thermostat.set_temperature(thermostat_temp)
+              
+              speaker = get_device('smart_speaker')
+              music_volume = 30
+              speaker.set_volume(music_volume)
+      ```
+
+  - scenario: Social media content scheduler
+    before: |
+      ```python
+      def schedule_social_posts(posts):
+          facebook_client = None
+          twitter_client = None
+          instagram_client = None
+          posting_intervals = {'facebook': 4, 'twitter': 2, 'instagram': 6}
+          success_count = 0
+          error_count = 0
+          
+          # authentication and rate limiting setup
+          
+          for post in posts:
+              if 'facebook' in post.platforms:
+                  facebook_client = get_facebook_client()
+                  result = facebook_client.create_post(post.content)
+                  
+              if 'twitter' in post.platforms:
+                  twitter_client = get_twitter_client()
+                  result = twitter_client.tweet(post.content[:280])
+                  
+              if 'instagram' in post.platforms:
+                  instagram_client = get_instagram_client()
+                  result = instagram_client.post_photo(post.image, post.caption)
+          
+          return success_count, error_count
+      ```
+    after: |
+      ```python
+      def schedule_social_posts(posts):
+          # authentication and rate limiting setup
+          
+          success_count = 0
+          error_count = 0
+          
+          for post in posts:
+              if 'facebook' in post.platforms:
+                  facebook_client = get_facebook_client()
+                  result = facebook_client.create_post(post.content)
+                  
+              if 'twitter' in post.platforms:
+                  twitter_client = get_twitter_client()
+                  result = twitter_client.tweet(post.content[:280])
+                  
+              if 'instagram' in post.platforms:
+                  instagram_client = get_instagram_client()
+                  result = instagram_client.post_photo(post.image, post.caption)
+          
+          return success_count, error_count
+      ```
+
+  - scenario: Machine learning model evaluation
+    before: |
+      ```python
+      def evaluate_model_performance(model, test_data):
+          predictions = []
+          actual_values = []
+          accuracy_score = 0
+          precision_score = 0
+          recall_score = 0
+          f1_score = 0
+          confusion_matrix = None
+          
+          # model preparation and data preprocessing
+          
+          for sample in test_data:
+              prediction = model.predict(sample.features)
+              predictions.append(prediction)
+              actual_values.append(sample.label)
+          
+          accuracy_score = accuracy(actual_values, predictions)
+          precision_score = precision(actual_values, predictions)
+          recall_score = recall(actual_values, predictions)
+          f1_score = f1(actual_values, predictions)
+          
+          return {
+              'accuracy': accuracy_score,
+              'precision': precision_score,
+              'recall': recall_score,
+              'f1': f1_score
+          }
+      ```
+    after: |
+      ```python
+      def evaluate_model_performance(model, test_data):
+          # model preparation and data preprocessing
+          
+          predictions = []
+          actual_values = []
+          
+          for sample in test_data:
+              prediction = model.predict(sample.features)
+              predictions.append(prediction)
+              actual_values.append(sample.label)
+          
+          accuracy_score = accuracy(actual_values, predictions)
+          precision_score = precision(actual_values, predictions)
+          recall_score = recall(actual_values, predictions)
+          f1_score = f1(actual_values, predictions)
+          
+          return {
+              'accuracy': accuracy_score,
+              'precision': precision_score,
+              'recall': recall_score,
+              'f1': f1_score
+          }
+      ```
+
+  - scenario: Video game inventory management
+    before: |
+      ```python
+      def organize_player_inventory(items):
+          weapons = []
+          armor = []
+          consumables = []
+          misc_items = []
+          total_weight = 0
+          max_capacity = 100
+          sorted_items = []
+          
+          # inventory rules and sorting preferences setup
+          
+          for item in items:
+              total_weight += item.weight
+              
+              if item.category == 'weapon':
+                  weapons.append(item)
+              elif item.category == 'armor':
+                  armor.append(item)
+              elif item.category == 'consumable':
+                  consumables.append(item)
+              else:
+                  misc_items.append(item)
+          
+          weapons.sort(key=lambda x: x.damage, reverse=True)
+          armor.sort(key=lambda x: x.defense, reverse=True)
+          
+          return {
+              'weapons': weapons,
+              'armor': armor,
+              'consumables': consumables,
+              'misc': misc_items,
+              'weight': total_weight
+          }
+      ```
+    after: |
+      ```python
+      def organize_player_inventory(items):
+          # inventory rules and sorting preferences setup
+          
+          weapons = []
+          armor = []
+          consumables = []
+          misc_items = []
+          total_weight = 0
+          
+          for item in items:
+              total_weight += item.weight
+              
+              if item.category == 'weapon':
+                  weapons.append(item)
+              elif item.category == 'armor':
+                  armor.append(item)
+              elif item.category == 'consumable':
+                  consumables.append(item)
+              else:
+                  misc_items.append(item)
+          
+          weapons.sort(key=lambda x: x.damage, reverse=True)
+          armor.sort(key=lambda x: x.defense, reverse=True)
+          
+          return {
+              'weapons': weapons,
+              'armor': armor,
+              'consumables': consumables,
+              'misc': misc_items,
+              'weight': total_weight
+          }
+      ```
+
+  - scenario: Weather forecast data processing
+    before: |
+      ```python
+      def process_weather_forecast(raw_data):
+          temperature_readings = []
+          humidity_readings = []
+          pressure_readings = []
+          wind_speed_readings = []
+          daily_summaries = []
+          weekly_average = {}
+          
+          # data validation and parsing setup
+          
+          for day_data in raw_data.daily_forecasts:
+              temp = convert_temperature(day_data.temp, 'celsius')
+              temperature_readings.append(temp)
+              
+              humidity = day_data.humidity_percent
+              humidity_readings.append(humidity)
+              
+              pressure = day_data.pressure_hpa
+              pressure_readings.append(pressure)
+              
+              wind_speed = convert_wind_speed(day_data.wind_mph, 'kmh')
+              wind_speed_readings.append(wind_speed)
+          
+          avg_temp = sum(temperature_readings) / len(temperature_readings)
+          avg_humidity = sum(humidity_readings) / len(humidity_readings)
+          
+          return {
+              'avg_temperature': avg_temp,
+              'avg_humidity': avg_humidity,
+              'daily_data': daily_summaries
+          }
+      ```
+    after: |
+      ```python
+      def process_weather_forecast(raw_data):
+          # data validation and parsing setup
+          
+          temperature_readings = []
+          humidity_readings = []
+          pressure_readings = []
+          wind_speed_readings = []
+          
+          for day_data in raw_data.daily_forecasts:
+              temp = convert_temperature(day_data.temp, 'celsius')
+              temperature_readings.append(temp)
+              
+              humidity = day_data.humidity_percent
+              humidity_readings.append(humidity)
+              
+              pressure = day_data.pressure_hpa
+              pressure_readings.append(pressure)
+              
+              wind_speed = convert_wind_speed(day_data.wind_mph, 'kmh')
+              wind_speed_readings.append(wind_speed)
+          
+          avg_temp = sum(temperature_readings) / len(temperature_readings)
+          avg_humidity = sum(humidity_readings) / len(humidity_readings)
+          
+          return {
+              'avg_temperature': avg_temp,
+              'avg_humidity': avg_humidity,
+              'daily_data': []
+          }
+      ```
+
+  - scenario: Cryptocurrency portfolio tracker
+    before: |
+      ```python
+      def calculate_portfolio_performance(holdings):
+          btc_value = 0
+          eth_value = 0
+          alt_coin_value = 0
+          total_invested = 0
+          current_value = 0
+          profit_loss = 0
+          percentage_change = 0
+          
+          # price fetching and conversion setup
+          
+          for holding in holdings:
+              current_price = get_current_price(holding.symbol)
+              holding_value = holding.quantity * current_price
+              current_value += holding_value
+              
+              invested_amount = holding.quantity * holding.purchase_price
+              total_invested += invested_amount
+              
+              if holding.symbol == 'BTC':
+                  btc_value += holding_value
+              elif holding.symbol == 'ETH':
+                  eth_value += holding_value
+              else:
+                  alt_coin_value += holding_value
+          
+          profit_loss = current_value - total_invested
+          percentage_change = (profit_loss / total_invested) * 100 if total_invested > 0 else 0
+          
+          return {
+              'total_value': current_value,
+              'profit_loss': profit_loss,
+              'percentage_change': percentage_change
+          }
+      ```
+    after: |
+      ```python
+      def calculate_portfolio_performance(holdings):
+          # price fetching and conversion setup
+          
+          btc_value = 0
+          eth_value = 0
+          alt_coin_value = 0
+          total_invested = 0
+          current_value = 0
+          
+          for holding in holdings:
+              current_price = get_current_price(holding.symbol)
+              holding_value = holding.quantity * current_price
+              current_value += holding_value
+              
+              invested_amount = holding.quantity * holding.purchase_price
+              total_invested += invested_amount
+              
+              if holding.symbol == 'BTC':
+                  btc_value += holding_value
+              elif holding.symbol == 'ETH':
+                  eth_value += holding_value
+              else:
+                  alt_coin_value += holding_value
+          
+          profit_loss = current_value - total_invested
+          percentage_change = (profit_loss / total_invested) * 100 if total_invested > 0 else 0
+          
+          return {
+              'total_value': current_value,
+              'profit_loss': profit_loss,
+              'percentage_change': percentage_change
+          }
+      ```
+
+  - scenario: Recipe nutrition calculator
+    before: |
+      ```python
+      def calculate_recipe_nutrition(ingredients):
+          total_calories = 0
+          total_protein = 0
+          total_carbs = 0
+          total_fat = 0
+          total_fiber = 0
+          vitamin_content = {}
+          mineral_content = {}
+          
+          # nutrition database lookup setup
+          
+          for ingredient in ingredients:
+              nutrition_info = get_nutrition_data(ingredient.name)
+              
+              serving_multiplier = ingredient.quantity / nutrition_info.serving_size
+              
+              calories = nutrition_info.calories * serving_multiplier
+              total_calories += calories
+              
+              protein = nutrition_info.protein_grams * serving_multiplier
+              total_protein += protein
+              
+              carbs = nutrition_info.carbs_grams * serving_multiplier
+              total_carbs += carbs
+              
+              fat = nutrition_info.fat_grams * serving_multiplier
+              total_fat += fat
+          
+          return {
+              'calories': total_calories,
+              'protein': total_protein,
+              'carbs': total_carbs,
+              'fat': total_fat
+          }
+      ```
+    after: |
+      ```python
+      def calculate_recipe_nutrition(ingredients):
+          # nutrition database lookup setup
+          
+          total_calories = 0
+          total_protein = 0
+          total_carbs = 0
+          total_fat = 0
+          
+          for ingredient in ingredients:
+              nutrition_info = get_nutrition_data(ingredient.name)
+              serving_multiplier = ingredient.quantity / nutrition_info.serving_size
+              
+              calories = nutrition_info.calories * serving_multiplier
+              total_calories += calories
+              
+              protein = nutrition_info.protein_grams * serving_multiplier
+              total_protein += protein
+              
+              carbs = nutrition_info.carbs_grams * serving_multiplier
+              total_carbs += carbs
+              
+              fat = nutrition_info.fat_grams * serving_multiplier
+              total_fat += fat
+          
+          return {
+              'calories': total_calories,
+              'protein': total_protein,
+              'carbs': total_carbs,
+              'fat': total_fat
+          }
+      ```
+
+  - scenario: Event ticket booking system
+    before: |
+      ```python
+      def process_ticket_booking(event_id, seat_preferences, customer):
+          available_seats = []
+          selected_seats = []
+          base_price = 0
+          service_fee = 0
+          total_cost = 0
+          booking_confirmation = None
+          payment_method = None
+          
+          # seat availability and pricing setup
+          
+          event = get_event(event_id)
+          base_price = event.ticket_price
+          
+          available_seats = get_available_seats(event_id)
+          selected_seats = find_best_seats(available_seats, seat_preferences)
+          
+          if len(selected_seats) >= seat_preferences.quantity:
+              service_fee = base_price * 0.1  # 10% service fee
+              total_cost = (base_price + service_fee) * len(selected_seats)
+              
+              payment_method = customer.preferred_payment_method
+              booking_confirmation = create_booking(customer, selected_seats, total_cost)
+          
+          return booking_confirmation
+      ```
+    after: |
+      ```python
+      def process_ticket_booking(event_id, seat_preferences, customer):
+          # seat availability and pricing setup
+          
+          event = get_event(event_id)
+          base_price = event.ticket_price
+          
+          available_seats = get_available_seats(event_id)
+          selected_seats = find_best_seats(available_seats, seat_preferences)
+          
+          if len(selected_seats) >= seat_preferences.quantity:
+              service_fee = base_price * 0.1  # 10% service fee
+              total_cost = (base_price + service_fee) * len(selected_seats)
+              
+              payment_method = customer.preferred_payment_method
+              booking_confirmation = create_booking(customer, selected_seats, total_cost)
+              
+              return booking_confirmation
+          
+          return None
+      ```
+
+  - scenario: Smart garden irrigation system
+    before: |
+      ```python
+      def manage_garden_watering(sensors, weather_forecast):
+          soil_moisture_readings = []
+          temperature_readings = []
+          humidity_readings = []
+          watering_schedule = []
+          water_amount_ml = 0
+          irrigation_duration = 0
+          
+          # sensor calibration and weather analysis
+          
+          for sensor in sensors:
+              soil_moisture = sensor.get_moisture_level()
+              soil_moisture_readings.append(soil_moisture)
+              
+              if soil_moisture < 30:  # Dry soil threshold
+                  zone = sensor.garden_zone
+                  water_amount_ml = calculate_water_needed(zone.plant_type, zone.area)
+                  irrigation_duration = water_amount_ml / zone.flow_rate
+                  
+                  watering_schedule.append({
+                      'zone': zone,
+                      'duration': irrigation_duration,
+                      'start_time': calculate_optimal_time(weather_forecast)
+                  })
+          
+          return watering_schedule
+      ```
+    after: |
+      ```python
+      def manage_garden_watering(sensors, weather_forecast):
+          # sensor calibration and weather analysis
+          
+          watering_schedule = []
+          
+          for sensor in sensors:
+              soil_moisture = sensor.get_moisture_level()
+              
+              if soil_moisture < 30:  # Dry soil threshold
+                  zone = sensor.garden_zone
+                  water_amount_ml = calculate_water_needed(zone.plant_type, zone.area)
+                  irrigation_duration = water_amount_ml / zone.flow_rate
+                  
+                  watering_schedule.append({
+                      'zone': zone,
+                      'duration': irrigation_duration,
+                      'start_time': calculate_optimal_time(weather_forecast)
+                  })
+          
+          return watering_schedule
+      ```

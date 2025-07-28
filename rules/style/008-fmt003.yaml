@@ -1,0 +1,727 @@
+title: Use vertical spacing to group related code
+id: FMT003
+
+description: |-
+  Vertical whitespace should be used strategically to group logically related 
+  statements and create visual separation between different conceptual sections 
+  of code. This improves readability by helping developers quickly understand 
+  code structure and flow.
+
+problems_without_proper_vertical_spacing:
+  - Code appears as a wall of text that's hard to scan
+  - Logical groupings are not visually apparent
+  - Related operations get lost in the noise
+  - Code structure and flow are harder to understand
+  - Debugging becomes more difficult due to visual complexity
+
+solutions_for_effective_vertical_spacing:
+  - Group variable declarations together
+  - Separate setup, processing, and cleanup sections
+  - Add space before return statements
+  - Separate different logical operations
+  - Use consistent spacing patterns throughout the codebase
+  - Don't over-use spacing (1-2 blank lines maximum)
+
+examples:
+  - scenario: Function with mixed operations
+    before: |
+      ```python
+      def process_order(order):
+          customer = order.customer
+          total = 0
+          for item in order.items:
+              total += item.price
+          discount = calculate_discount(customer)
+          final_amount = total - discount
+          payment = process_payment(final_amount)
+          send_confirmation(customer, order)
+          return payment
+      ```
+    after: |
+      ```python
+      def process_order(order):
+          customer = order.customer
+          
+          total = 0
+          for item in order.items:
+              total += item.price
+          
+          discount = calculate_discount(customer)
+          final_amount = total - discount
+          
+          payment = process_payment(final_amount)
+          send_confirmation(customer, order)
+          
+          return payment
+      ```
+
+  - scenario: Database query with setup and cleanup
+    before: |
+      ```python
+      def get_user_posts(user_id):
+          conn = get_connection()
+          cursor = conn.cursor()
+          query = "SELECT * FROM posts WHERE user_id = ?"
+          cursor.execute(query, (user_id,))
+          results = cursor.fetchall()
+          cursor.close()
+          conn.close()
+          return results
+      ```
+    after: |
+      ```python
+      def get_user_posts(user_id):
+          conn = get_connection()
+          cursor = conn.cursor()
+          
+          query = "SELECT * FROM posts WHERE user_id = ?"
+          cursor.execute(query, (user_id,))
+          results = cursor.fetchall()
+          
+          cursor.close()
+          conn.close()
+          
+          return results
+      ```
+
+  - scenario: Configuration and initialization
+    before: |
+      ```javascript
+      function initializeApp() {
+          const config = loadConfig();
+          const logger = createLogger(config.logLevel);
+          const database = connectDatabase(config.dbUrl);
+          const router = createRouter();
+          router.use(middleware);
+          app.use(router);
+          app.listen(config.port);
+      }
+      ```
+    after: |
+      ```javascript
+      function initializeApp() {
+          const config = loadConfig();
+          const logger = createLogger(config.logLevel);
+          const database = connectDatabase(config.dbUrl);
+          
+          const router = createRouter();
+          router.use(middleware);
+          
+          app.use(router);
+          app.listen(config.port);
+      }
+      ```
+
+  - scenario: Mathematical calculation with steps
+    before: |
+      ```python
+      def calculate_mortgage_payment(principal, rate, years):
+          monthly_rate = rate / 12
+          num_payments = years * 12
+          payment = principal * (monthly_rate * (1 + monthly_rate)**num_payments) / ((1 + monthly_rate)**num_payments - 1)
+          return round(payment, 2)
+      ```
+    after: |
+      ```python
+      def calculate_mortgage_payment(principal, rate, years):
+          monthly_rate = rate / 12
+          num_payments = years * 12
+          
+          payment = principal * (monthly_rate * (1 + monthly_rate)**num_payments) / ((1 + monthly_rate)**num_payments - 1)
+          
+          return round(payment, 2)
+      ```
+
+  - scenario: Data validation and processing
+    before: |
+      ```python
+      def process_csv_upload(file):
+          if not file.filename.endswith('.csv'):
+              raise ValueError("Invalid file type")
+          content = file.read().decode('utf-8')
+          rows = csv.reader(content.splitlines())
+          headers = next(rows)
+          data = []
+          for row in rows:
+              if len(row) == len(headers):
+                  data.append(dict(zip(headers, row)))
+          return data
+      ```
+    after: |
+      ```python
+      def process_csv_upload(file):
+          if not file.filename.endswith('.csv'):
+              raise ValueError("Invalid file type")
+              
+          content = file.read().decode('utf-8')
+          rows = csv.reader(content.splitlines())
+          headers = next(rows)
+          
+          data = []
+          for row in rows:
+              if len(row) == len(headers):
+                  data.append(dict(zip(headers, row)))
+                  
+          return data
+      ```
+
+  - scenario: API response construction
+    before: |
+      ```python
+      def create_api_response(data, status='success'):
+          timestamp = datetime.utcnow().isoformat()
+          user_id = request.user.id if request.user else None
+          response = {
+              'status': status,
+              'timestamp': timestamp,
+              'user_id': user_id,
+              'data': data
+          }
+          return jsonify(response)
+      ```
+    after: |
+      ```python
+      def create_api_response(data, status='success'):
+          timestamp = datetime.utcnow().isoformat()
+          user_id = request.user.id if request.user else None
+          
+          response = {
+              'status': status,
+              'timestamp': timestamp,
+              'user_id': user_id,
+              'data': data
+          }
+          
+          return jsonify(response)
+      ```
+
+  - scenario: Event handling with multiple phases
+    before: |
+      ```javascript
+      function handleUserLogin(credentials) {
+          const user = validateCredentials(credentials);
+          const token = generateAuthToken(user);
+          updateLastLoginTime(user.id);
+          logAuditEvent('user_login', user.id);
+          setUserSession(token);
+          redirectToHomePage();
+      }
+      ```
+    after: |
+      ```javascript
+      function handleUserLogin(credentials) {
+          const user = validateCredentials(credentials);
+          const token = generateAuthToken(user);
+          
+          updateLastLoginTime(user.id);
+          logAuditEvent('user_login', user.id);
+          
+          setUserSession(token);
+          redirectToHomePage();
+      }
+      ```
+
+  - scenario: File processing with error handling
+    before: |
+      ```python
+      def backup_files(source_dir, backup_dir):
+          try:
+              files = os.listdir(source_dir)
+              os.makedirs(backup_dir, exist_ok=True)
+              for filename in files:
+                  source_path = os.path.join(source_dir, filename)
+                  backup_path = os.path.join(backup_dir, filename)
+                  shutil.copy2(source_path, backup_path)
+              print(f"Backed up {len(files)} files")
+          except Exception as e:
+              print(f"Backup failed: {e}")
+              raise
+      ```
+    after: |
+      ```python
+      def backup_files(source_dir, backup_dir):
+          try:
+              files = os.listdir(source_dir)
+              os.makedirs(backup_dir, exist_ok=True)
+              
+              for filename in files:
+                  source_path = os.path.join(source_dir, filename)
+                  backup_path = os.path.join(backup_dir, filename)
+                  shutil.copy2(source_path, backup_path)
+                  
+              print(f"Backed up {len(files)} files")
+          except Exception as e:
+              print(f"Backup failed: {e}")
+              raise
+      ```
+
+  - scenario: Machine learning model training
+    before: |
+      ```python
+      def train_model(features, labels):
+          X_train, X_test, y_train, y_test = train_test_split(features, labels, test_size=0.2)
+          scaler = StandardScaler()
+          X_train_scaled = scaler.fit_transform(X_train)
+          X_test_scaled = scaler.transform(X_test)
+          model = RandomForestClassifier(n_estimators=100)
+          model.fit(X_train_scaled, y_train)
+          predictions = model.predict(X_test_scaled)
+          accuracy = accuracy_score(y_test, predictions)
+          return model, accuracy
+      ```
+    after: |
+      ```python
+      def train_model(features, labels):
+          X_train, X_test, y_train, y_test = train_test_split(features, labels, test_size=0.2)
+          
+          scaler = StandardScaler()
+          X_train_scaled = scaler.fit_transform(X_train)
+          X_test_scaled = scaler.transform(X_test)
+          
+          model = RandomForestClassifier(n_estimators=100)
+          model.fit(X_train_scaled, y_train)
+          
+          predictions = model.predict(X_test_scaled)
+          accuracy = accuracy_score(y_test, predictions)
+          
+          return model, accuracy
+      ```
+
+  - scenario: Web scraping with rate limiting
+    before: |
+      ```python
+      def scrape_product_data(urls):
+          products = []
+          session = requests.Session()
+          for url in urls:
+              response = session.get(url)
+              soup = BeautifulSoup(response.content, 'html.parser')
+              title = soup.find('h1').text.strip()
+              price = soup.find('.price').text.strip()
+              products.append({'title': title, 'price': price})
+              time.sleep(1)
+          return products
+      ```
+    after: |
+      ```python
+      def scrape_product_data(urls):
+          products = []
+          session = requests.Session()
+          
+          for url in urls:
+              response = session.get(url)
+              soup = BeautifulSoup(response.content, 'html.parser')
+              
+              title = soup.find('h1').text.strip()
+              price = soup.find('.price').text.strip()
+              products.append({'title': title, 'price': price})
+              
+              time.sleep(1)
+              
+          return products
+      ```
+
+  - scenario: Game state update with physics
+    before: |
+      ```python
+      def update_player(player, dt):
+          player.velocity.x += player.acceleration.x * dt
+          player.velocity.y += player.acceleration.y * dt
+          player.position.x += player.velocity.x * dt
+          player.position.y += player.velocity.y * dt
+          if player.position.y > GROUND_LEVEL:
+              player.position.y = GROUND_LEVEL
+              player.velocity.y = 0
+          player.update_animation(dt)
+      ```
+    after: |
+      ```python
+      def update_player(player, dt):
+          player.velocity.x += player.acceleration.x * dt
+          player.velocity.y += player.acceleration.y * dt
+          
+          player.position.x += player.velocity.x * dt
+          player.position.y += player.velocity.y * dt
+          
+          if player.position.y > GROUND_LEVEL:
+              player.position.y = GROUND_LEVEL
+              player.velocity.y = 0
+              
+          player.update_animation(dt)
+      ```
+
+  - scenario: Email template generation
+    before: |
+      ```python
+      def generate_welcome_email(user):
+          subject = f"Welcome to {COMPANY_NAME}, {user.first_name}!"
+          body_header = f"Hi {user.first_name},"
+          body_content = "Thanks for joining our platform. Here's what you can do next:"
+          action_items = ["Complete your profile", "Browse our products", "Connect with friends"]
+          footer = "If you have questions, reply to this email."
+          html_body = render_template('welcome.html', user=user, items=action_items)
+          return create_email(user.email, subject, html_body, footer)
+      ```
+    after: |
+      ```python
+      def generate_welcome_email(user):
+          subject = f"Welcome to {COMPANY_NAME}, {user.first_name}!"
+          
+          body_header = f"Hi {user.first_name},"
+          body_content = "Thanks for joining our platform. Here's what you can do next:"
+          action_items = ["Complete your profile", "Browse our products", "Connect with friends"]
+          
+          footer = "If you have questions, reply to this email."
+          html_body = render_template('welcome.html', user=user, items=action_items)
+          
+          return create_email(user.email, subject, html_body, footer)
+      ```
+
+  - scenario: Image processing pipeline
+    before: |
+      ```python
+      def process_image(image_path):
+          image = cv2.imread(image_path)
+          gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+          blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+          edges = cv2.Canny(blurred, 50, 150)
+          contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+          largest_contour = max(contours, key=cv2.contourArea)
+          return largest_contour
+      ```
+    after: |
+      ```python
+      def process_image(image_path):
+          image = cv2.imread(image_path)
+          
+          gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+          blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+          
+          edges = cv2.Canny(blurred, 50, 150)
+          contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+          
+          largest_contour = max(contours, key=cv2.contourArea)
+          
+          return largest_contour
+      ```
+
+  - scenario: Cryptocurrency trading logic
+    before: |
+      ```python
+      def execute_trade(symbol, amount):
+          current_price = get_current_price(symbol)
+          account_balance = get_account_balance()
+          trade_fee = current_price * amount * 0.001
+          total_cost = (current_price * amount) + trade_fee
+          if account_balance >= total_cost:
+              order = place_buy_order(symbol, amount, current_price)
+              update_portfolio(symbol, amount)
+              log_trade(order.id, symbol, amount, current_price)
+          return order
+      ```
+    after: |
+      ```python
+      def execute_trade(symbol, amount):
+          current_price = get_current_price(symbol)
+          account_balance = get_account_balance()
+          
+          trade_fee = current_price * amount * 0.001
+          total_cost = (current_price * amount) + trade_fee
+          
+          if account_balance >= total_cost:
+              order = place_buy_order(symbol, amount, current_price)
+              update_portfolio(symbol, amount)
+              log_trade(order.id, symbol, amount, current_price)
+              
+          return order
+      ```
+
+  - scenario: Social media post scheduling
+    before: |
+      ```python
+      def schedule_posts(posts, platform):
+          api_client = get_platform_client(platform)
+          rate_limit = get_rate_limit(platform)
+          for post in posts:
+              content = format_content(post.text, platform)
+              media_urls = upload_media(post.images, api_client)
+              scheduled_time = calculate_optimal_time(post.target_audience)
+              api_client.schedule_post(content, media_urls, scheduled_time)
+              time.sleep(rate_limit)
+          return len(posts)
+      ```
+    after: |
+      ```python
+      def schedule_posts(posts, platform):
+          api_client = get_platform_client(platform)
+          rate_limit = get_rate_limit(platform)
+          
+          for post in posts:
+              content = format_content(post.text, platform)
+              media_urls = upload_media(post.images, api_client)
+              
+              scheduled_time = calculate_optimal_time(post.target_audience)
+              api_client.schedule_post(content, media_urls, scheduled_time)
+              
+              time.sleep(rate_limit)
+              
+          return len(posts)
+      ```
+
+  - scenario: Inventory management system
+    before: |
+      ```python
+      def restock_item(item_id, quantity):
+          item = get_item(item_id)
+          current_stock = item.stock_level
+          new_stock = current_stock + quantity
+          cost = quantity * item.wholesale_price
+          supplier = get_preferred_supplier(item_id)
+          purchase_order = create_purchase_order(supplier, item_id, quantity, cost)
+          update_stock_level(item_id, new_stock)
+          notify_warehouse(purchase_order)
+          return purchase_order
+      ```
+    after: |
+      ```python
+      def restock_item(item_id, quantity):
+          item = get_item(item_id)
+          current_stock = item.stock_level
+          new_stock = current_stock + quantity
+          
+          cost = quantity * item.wholesale_price
+          supplier = get_preferred_supplier(item_id)
+          
+          purchase_order = create_purchase_order(supplier, item_id, quantity, cost)
+          update_stock_level(item_id, new_stock)
+          notify_warehouse(purchase_order)
+          
+          return purchase_order
+      ```
+
+  - scenario: Weather data analysis
+    before: |
+      ```python
+      def analyze_weather_trends(data):
+          temperatures = [d['temp'] for d in data]
+          humidity = [d['humidity'] for d in data]
+          avg_temp = sum(temperatures) / len(temperatures)
+          max_temp = max(temperatures)
+          min_temp = min(temperatures)
+          avg_humidity = sum(humidity) / len(humidity)
+          trend = calculate_trend(temperatures)
+          return {
+              'avg_temp': avg_temp,
+              'max_temp': max_temp,
+              'min_temp': min_temp,
+              'avg_humidity': avg_humidity,
+              'trend': trend
+          }
+      ```
+    after: |
+      ```python
+      def analyze_weather_trends(data):
+          temperatures = [d['temp'] for d in data]
+          humidity = [d['humidity'] for d in data]
+          
+          avg_temp = sum(temperatures) / len(temperatures)
+          max_temp = max(temperatures)
+          min_temp = min(temperatures)
+          avg_humidity = sum(humidity) / len(humidity)
+          
+          trend = calculate_trend(temperatures)
+          
+          return {
+              'avg_temp': avg_temp,
+              'max_temp': max_temp,
+              'min_temp': min_temp,
+              'avg_humidity': avg_humidity,
+              'trend': trend
+          }
+      ```
+
+  - scenario: Smart home automation
+    before: |
+      ```python
+      def evening_routine():
+          current_time = datetime.now().time()
+          outdoor_light = get_light_sensor_reading()
+          indoor_temp = get_temperature_reading()
+          if current_time > time(18, 0) and outdoor_light < 50:
+              turn_on_lights(['living_room', 'kitchen'])
+              if indoor_temp < 20:
+                  set_thermostat(22)
+              close_blinds()
+              start_security_system()
+      ```
+    after: |
+      ```python
+      def evening_routine():
+          current_time = datetime.now().time()
+          outdoor_light = get_light_sensor_reading()
+          indoor_temp = get_temperature_reading()
+          
+          if current_time > time(18, 0) and outdoor_light < 50:
+              turn_on_lights(['living_room', 'kitchen'])
+              
+              if indoor_temp < 20:
+                  set_thermostat(22)
+                  
+              close_blinds()
+              start_security_system()
+      ```
+
+  - scenario: Package delivery optimization
+    before: |
+      ```python
+      def optimize_delivery_route(packages, vehicle):
+          sorted_packages = sort_by_priority(packages)
+          route = []
+          current_location = vehicle.depot
+          for package in sorted_packages:
+              distance = calculate_distance(current_location, package.address)
+              travel_time = estimate_travel_time(distance, current_location, package.address)
+              route.append({
+                  'package': package,
+                  'distance': distance,
+                  'travel_time': travel_time
+              })
+              current_location = package.address
+          return_distance = calculate_distance(current_location, vehicle.depot)
+          total_distance = sum(r['distance'] for r in route) + return_distance
+          return route, total_distance
+      ```
+    after: |
+      ```python
+      def optimize_delivery_route(packages, vehicle):
+          sorted_packages = sort_by_priority(packages)
+          route = []
+          current_location = vehicle.depot
+          
+          for package in sorted_packages:
+              distance = calculate_distance(current_location, package.address)
+              travel_time = estimate_travel_time(distance, current_location, package.address)
+              
+              route.append({
+                  'package': package,
+                  'distance': distance,
+                  'travel_time': travel_time
+              })
+              current_location = package.address
+              
+          return_distance = calculate_distance(current_location, vehicle.depot)
+          total_distance = sum(r['distance'] for r in route) + return_distance
+          
+          return route, total_distance
+      ```
+
+  - scenario: Audio processing for music recommendation
+    before: |
+      ```python
+      def extract_audio_features(audio_file):
+          audio, sr = librosa.load(audio_file)
+          tempo, _ = librosa.beat.beat_track(y=audio, sr=sr)
+          mfccs = librosa.feature.mfcc(y=audio, sr=sr, n_mfcc=13)
+          chroma = librosa.feature.chroma(y=audio, sr=sr)
+          spectral_centroid = librosa.feature.spectral_centroid(y=audio, sr=sr)
+          features = {
+              'tempo': tempo,
+              'mfccs': mfccs.mean(axis=1),
+              'chroma': chroma.mean(axis=1),
+              'spectral_centroid': spectral_centroid.mean()
+          }
+          return features
+      ```
+    after: |
+      ```python
+      def extract_audio_features(audio_file):
+          audio, sr = librosa.load(audio_file)
+          
+          tempo, _ = librosa.beat.beat_track(y=audio, sr=sr)
+          mfccs = librosa.feature.mfcc(y=audio, sr=sr, n_mfcc=13)
+          chroma = librosa.feature.chroma(y=audio, sr=sr)
+          spectral_centroid = librosa.feature.spectral_centroid(y=audio, sr=sr)
+          
+          features = {
+              'tempo': tempo,
+              'mfccs': mfccs.mean(axis=1),
+              'chroma': chroma.mean(axis=1),
+              'spectral_centroid': spectral_centroid.mean()
+          }
+          
+          return features
+      ```
+
+  - scenario: Blockchain transaction validation
+    before: |
+      ```python
+      def validate_transaction(transaction):
+          sender_balance = get_balance(transaction.sender)
+          transaction_fee = calculate_fee(transaction.amount)
+          total_cost = transaction.amount + transaction_fee
+          if sender_balance < total_cost:
+              return False
+          signature_valid = verify_signature(transaction.signature, transaction.sender)
+          if not signature_valid:
+              return False
+          nonce_valid = verify_nonce(transaction.nonce, transaction.sender)
+          return nonce_valid
+      ```
+    after: |
+      ```python
+      def validate_transaction(transaction):
+          sender_balance = get_balance(transaction.sender)
+          transaction_fee = calculate_fee(transaction.amount)
+          total_cost = transaction.amount + transaction_fee
+          
+          if sender_balance < total_cost:
+              return False
+              
+          signature_valid = verify_signature(transaction.signature, transaction.sender)
+          if not signature_valid:
+              return False
+              
+          nonce_valid = verify_nonce(transaction.nonce, transaction.sender)
+          
+          return nonce_valid
+      ```
+
+  - scenario: Medical diagnosis support system
+    before: |
+      ```python
+      def analyze_symptoms(patient_data):
+          age = patient_data['age']
+          symptoms = patient_data['symptoms']
+          medical_history = patient_data['medical_history']
+          risk_factors = calculate_risk_factors(age, medical_history)
+          symptom_scores = score_symptoms(symptoms)
+          differential_diagnoses = match_diagnoses(symptom_scores, risk_factors)
+          confidence_scores = calculate_confidence(differential_diagnoses, patient_data)
+          recommendations = generate_recommendations(differential_diagnoses, confidence_scores)
+          return {
+              'diagnoses': differential_diagnoses,
+              'confidence': confidence_scores,
+              'recommendations': recommendations
+          }
+      ```
+    after: |
+      ```python
+      def analyze_symptoms(patient_data):
+          age = patient_data['age']
+          symptoms = patient_data['symptoms']
+          medical_history = patient_data['medical_history']
+          
+          risk_factors = calculate_risk_factors(age, medical_history)
+          symptom_scores = score_symptoms(symptoms)
+          
+          differential_diagnoses = match_diagnoses(symptom_scores, risk_factors)
+          confidence_scores = calculate_confidence(differential_diagnoses, patient_data)
+          
+          recommendations = generate_recommendations(differential_diagnoses, confidence_scores)
+          
+          return {
+              'diagnoses': differential_diagnoses,
+              'confidence': confidence_scores,
+              'recommendations': recommendations
+          }
+      ```
