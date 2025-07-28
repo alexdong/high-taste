@@ -47,7 +47,7 @@ async def agent_run(prompt: str) -> Rule:
     
     logger.info("Sending request to Claude API...")
     result = await agent.run(
-        prompt, model_settings=ModelSettings(temperature=0.2, max_tokens=50000)
+        prompt, model_settings=ModelSettings(temperature=0.2, max_tokens=8000)
     )
     
     logger.info("Received response from Claude API")
@@ -62,7 +62,7 @@ if __name__ == "__main__":
 
     # Render a sample prompt for testing, make sure use `prompt.RULE_DETAILS_PROMPT`
     example_prompt = f"""
-    ${RULE_DETAILS_PROMPT}
+    {RULE_DETAILS_PROMPT}
 
     The rule to convert is:
     Dynamic Data Discovery vs Hardcoded Lists
@@ -74,4 +74,5 @@ if __name__ == "__main__":
     - Create bugs when developers forget to update lists
     - Make code fragile to changes in data structure
     """
-    asyncio.run(agent_run(example_prompt))
+    rule = asyncio.run(agent_run(example_prompt))
+    print(f"Generated rule: {rule.title} (ID: {rule.id})")
