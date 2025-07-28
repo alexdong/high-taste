@@ -38,24 +38,31 @@ async def agent_run(prompt: str) -> Rule:
     logger.info("Starting agent_run with prompt length: %d characters", len(prompt))
     logger.debug("Prompt preview: \n%s\n\n", prompt)
     
-    model = AnthropicModel("anthropic:claude-sonnet-4-latest")
+    model = AnthropicModel("claude-sonnet-4-20250514")
     agent = Agent(
         model,
         output_type=Rule,
         system_prompt=SYSTEM_PROMPT,
     )
     
-    logger.info("Sending request to Claude API...")
-    result = await agent.run(
+    logger.info("Sending streaming request to Claude API...")
+    async with agent.run_stream(
         prompt, model_settings=ModelSettings(temperature=0.2, max_tokens=8000)
-    )
+    ) as result:
+        # Process the streaming structured output
+        async for partial in result.stream_structured():
+            if partial is not None:
+                logger.debug("Received partial structured data: %s", type(partial))
+        
+        # Get the final result
+        final_result = await result.get_data()
     
-    logger.info("Received response from Claude API")
-    logger.debug("Generated rule title: %s", result.output.title)
-    logger.debug("Generated rule ID: %s", result.output.id)
-    logger.debug("Number of examples: %d", len(result.output.examples))
+    logger.info("Received complete response from Claude API")
+    logger.debug("Generated rule title: %s", final_result.title)
+    logger.debug("Generated rule ID: %s", final_result.id)
+    logger.debug("Number of examples: %d", len(final_result.examples))
     
-    return result.output
+    return final_result
 
 if __name__ == "__main__":
     import asyncio
